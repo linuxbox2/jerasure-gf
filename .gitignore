@@ -1,5 +1,6 @@
 ,*
 *.o
+libjerasure.a
 Examples/cauchy_01
 Examples/cauchy_02
 Examples/cauchy_03
