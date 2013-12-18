@@ -62,7 +62,7 @@ usage(char *s)
   fprintf(stderr, "       \n");
   fprintf(stderr, "       k+m must be <= 2^w.  w can be 8, 16 or 32.\n");
   fprintf(stderr, "       It sets up a Cauchy distribution matrix and encodes\n");
-  fprintf(stderr, "       k devices of size bytes with it.  Then it decodes.\n", sizeof(long));
+  fprintf(stderr, "       k devices of size bytes with it.  Then it decodes.\n", sizeof(int32));
   fprintf(stderr, "       After that, it decodes device 0 by using jerasure_make_decoding_matrix()\n");
   fprintf(stderr, "       and jerasure_matrix_dotprod().\n");
   fprintf(stderr, "       \n");
@@ -80,7 +80,7 @@ static void print_data_and_coding(int k, int m, int w, int size,
 {
   int i, j, x;
   int n, sp;
-  long l;
+  int32 l;
 
   if(k > m) n = k;
   else n = m;
@@ -115,7 +115,7 @@ static void print_data_and_coding(int k, int m, int w, int size,
 
 int main(int argc, char **argv)
 {
-  long l;
+  int32 l;
   int k, m, w, size;
   int i, j;
   int *matrix;
@@ -129,8 +129,8 @@ int main(int argc, char **argv)
   if (sscanf(argv[3], "%d", &w) == 0 || (w != 8 && w != 16 && w != 32))
 		  usage("Bad w");
   if (w < 32 && k + m > (1 << w)) usage("k + m must be <= 2 ^ w");
-  if (sscanf(argv[4], "%d", &size) == 0 || size % sizeof(long) != 0) 
-		usage("size must be multiple of sizeof(long)");
+  if (sscanf(argv[4], "%d", &size) == 0 || size % sizeof(int32) != 0) 
+		usage("size must be multiple of sizeof(int32)");
 
   matrix = talloc(int, m*k);
   for (i = 0; i < m; i++) {
@@ -147,9 +147,9 @@ int main(int argc, char **argv)
   data = talloc(char *, k);
   for (i = 0; i < k; i++) {
     data[i] = talloc(char, size);
-	for(j = 0; j < size; j+=sizeof(long)) {
+	for(j = 0; j < size; j+=sizeof(int32)) {
 		l = lrand48();
-		memcpy(data[i] + j, &l, sizeof(long));
+		memcpy(data[i] + j, &l, sizeof(int32));
 	}
   }
 

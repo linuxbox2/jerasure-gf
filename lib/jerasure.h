@@ -61,7 +61,7 @@ POSSIBILITY OF SUCH DAMAGE.
    w = Word size
 
    data_ptrs = An array of k pointers to data which is size bytes.  
-               Size must be a multiple of sizeof(long).
+               Size must be a multiple of sizeof(int32).
                Pointers must also be longword aligned.
  
    coding_ptrs = An array of m pointers to coding data which is size bytes.

@@ -66,7 +66,7 @@ usage(char *s)
   fprintf(stderr, "       \n");
   fprintf(stderr, "       k+m must be <= 2^w.  It sets up a Cauchy distribution matrix using \n");
   fprintf(stderr, "       cauchy_good_coding_matrix(), then it encodes\n");
-  fprintf(stderr, "       k devices of w*%d bytes using smart bit-matrix scheduling.\n", sizeof(long));
+  fprintf(stderr, "       k devices of w*%d bytes using smart bit-matrix scheduling.\n", sizeof(int32));
   fprintf(stderr, "       It decodes using bit-matrix scheduling as well.\n");
   fprintf(stderr, "       \n");
   fprintf(stderr, "This demonstrates: cauchy_original_coding_matrix()\n");
@@ -84,7 +84,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 		char **data, char **coding) 
 {
 	int i, j, x, n, sp;
-	long l;
+	int32 l;
 
 	if(k > m) n = k;
 	else n = m;
@@ -98,7 +98,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 				if(j==0) printf("D%-2d p%-2d:", i,j);
 				else printf("    p%-2d:", j);
 				for(x = 0; x < psize; x +=4) {
-					memcpy(&l, data[i]+j*psize+x, sizeof(long));
+					memcpy(&l, data[i]+j*psize+x, sizeof(int32));
 					printf(" %08lx", l);
 				}
 				printf("    ");
@@ -108,7 +108,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 				if(j==0) printf("C%-2d p%-2d:", i,j);
 				else printf("    p%-2d:", j);
 				for(x = 0; x < psize; x +=4) {
-					memcpy(&l, coding[i]+j*psize+x, sizeof(long));
+					memcpy(&l, coding[i]+j*psize+x, sizeof(int32));
 					printf(" %08lx", l);
 				}
 			}
@@ -121,7 +121,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 
 int main(int argc, char **argv)
 {
-  long l;
+  int32 l;
   int k, w, i, j, m;
   int *matrix, *bitmatrix;
   char **data, **coding, **ptrs;
@@ -155,22 +155,22 @@ int main(int argc, char **argv)
   srand48(0);
   data = talloc(char *, k);
   for (i = 0; i < k; i++) {
-    data[i] = talloc(char, sizeof(long)*w);
+    data[i] = talloc(char, sizeof(int32)*w);
     for (j = 0; j < w; j++) {
       l = lrand48();
-      memcpy(data[i]+j*sizeof(long), &l, sizeof(long));
+      memcpy(data[i]+j*sizeof(int32), &l, sizeof(int32));
     }
   }
 
   coding = talloc(char *, m);
   for (i = 0; i < m; i++) {
-    coding[i] = talloc(char, sizeof(long)*w);
+    coding[i] = talloc(char, sizeof(int32)*w);
   }
 
-  jerasure_schedule_encode(k, m, w, smart, data, coding, w*sizeof(long), sizeof(long));
+  jerasure_schedule_encode(k, m, w, smart, data, coding, w*sizeof(int32), sizeof(int32));
   jerasure_get_stats(stats);
   printf("Smart Encoding Complete: - %.0lf XOR'd bytes\n\n", stats[0]);
-  print_data_and_coding(k, m, w, sizeof(long), data, coding);
+  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
 
   erasures = talloc(int, (m+1));
   erased = talloc(int, (k+m));
@@ -179,20 +179,20 @@ int main(int argc, char **argv)
     erasures[i] = lrand48()%(k+m);
     if (erased[erasures[i]] == 0) {
       erased[erasures[i]] = 1;
-      bzero((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], sizeof(long)*w);
+      bzero((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], sizeof(int32)*w);
       i++;
     }
   }
   erasures[i] = -1;
 
   printf("Erased %d random pieces of data/coding:\n\n", m);
-  print_data_and_coding(k, m, w, sizeof(long), data, coding);
+  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
   
-  jerasure_schedule_decode_lazy(k, m, w, bitmatrix, erasures, data, coding, w*sizeof(long), sizeof(long), 1);
+  jerasure_schedule_decode_lazy(k, m, w, bitmatrix, erasures, data, coding, w*sizeof(int32), sizeof(int32), 1);
   jerasure_get_stats(stats);
 
   printf("State of the system after decoding: %.0lf XOR'd bytes\n\n", stats[0]);
-  print_data_and_coding(k, m, w, sizeof(long), data, coding);
+  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
   
   return 0;
 }

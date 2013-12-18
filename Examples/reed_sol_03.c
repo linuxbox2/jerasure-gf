@@ -64,7 +64,7 @@ usage(char *s)
   fprintf(stderr, "       \n");
   fprintf(stderr, "       w must be 8, 16 or 32.  k+2 must be <= 2^w.  It sets up a classic\n");
   fprintf(stderr, "       RAID-6 coding matrix based on Anvin's optimization and encodes\n");
-  fprintf(stderr, "       %d-byte devices with it.  Then it decodes.\n", sizeof(long));
+  fprintf(stderr, "       %d-byte devices with it.  Then it decodes.\n", sizeof(int32));
   fprintf(stderr, "       \n");
   fprintf(stderr, "This demonstrates: reed_sol_r6_encode()\n");
   fprintf(stderr, "                   reed_sol_r6_coding_matrix()\n");
@@ -80,7 +80,7 @@ static void print_data_and_coding(int k, int m, int w, int size,
 {
   int i, j, x;
   int n, sp;
-  long l;
+  int32 l;
 
   if(k > m) n = k;
   else n = m;
@@ -115,7 +115,7 @@ static void print_data_and_coding(int k, int m, int w, int size,
 
 int main(int argc, char **argv)
 {
-  long l;
+  int32 l;
   int k, w, i, j, m;
   int *matrix;
   char **data, **coding;
@@ -137,20 +137,20 @@ int main(int argc, char **argv)
   srand48(0);
   data = talloc(char *, k);
   for (i = 0; i < k; i++) {
-    data[i] = talloc(char, sizeof(long));
+    data[i] = talloc(char, sizeof(int32));
     l = lrand48();
-    memcpy(data[i], &l, sizeof(long));
+    memcpy(data[i], &l, sizeof(int32));
   }
 
   coding = talloc(char *, m);
   for (i = 0; i < m; i++) {
-    coding[i] = talloc(char, sizeof(long));
+    coding[i] = talloc(char, sizeof(int32));
   }
 
-  reed_sol_r6_encode(k, w, data, coding, sizeof(long));
+  reed_sol_r6_encode(k, w, data, coding, sizeof(int32));
   
   printf("Encoding Complete:\n\n");
-  print_data_and_coding(k, m, w, sizeof(long), data, coding);
+  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
 
   erasures = talloc(int, (m+1));
   erased = talloc(int, (k+m));
@@ -160,19 +160,19 @@ int main(int argc, char **argv)
     erasures[i] = lrand48()%(k+m);
     if (erased[erasures[i]] == 0) {
       erased[erasures[i]] = 1;
-      memcpy((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], &l, sizeof(long));
+      memcpy((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], &l, sizeof(int32));
       i++;
     }
   }
   erasures[i] = -1;
 
   printf("Erased %d random devices:\n\n", m);
-  print_data_and_coding(k, m, w, sizeof(long), data, coding);
+  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
   
-  i = jerasure_matrix_decode(k, m, w, matrix, 1, erasures, data, coding, sizeof(long));
+  i = jerasure_matrix_decode(k, m, w, matrix, 1, erasures, data, coding, sizeof(int32));
 
   printf("State of the system after decoding:\n\n");
-  print_data_and_coding(k, m, w, sizeof(long), data, coding);
+  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
   
   return 0;
 }

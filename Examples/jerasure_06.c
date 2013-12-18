@@ -61,7 +61,7 @@ usage(char *s)
   fprintf(stderr, "usage: jerasure_06 k m w packetsize\n");
   fprintf(stderr, "Does a simple Cauchy Reed-Solomon coding example in GF(2^w).\n");
   fprintf(stderr, "       \n");
-  fprintf(stderr, "       k+m must be < 2^w.  Packetsize must be a multiple of sizeof(long)\n");
+  fprintf(stderr, "       k+m must be < 2^w.  Packetsize must be a multiple of sizeof(int32)\n");
   fprintf(stderr, "       It sets up a Cauchy distribution matrix and encodes k devices of w*packetsize bytes.\n");
   fprintf(stderr, "       After that, it decodes device 0 by using jerasure_make_decoding_bitmatrix()\n");
   fprintf(stderr, "       and jerasure_bitmatrix_dotprod().\n");
@@ -79,7 +79,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 		char **data, char **coding) 
 {
 	int i, j, x, n, sp;
-	long l;
+	int32 l;
 
 	if(k > m) n = k;
 	else n = m;
@@ -93,7 +93,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 				if(j==0) printf("D%-2d p%-2d:", i,j);
 				else printf("    p%-2d:", j);
 				for(x = 0; x < psize; x +=4) {
-					memcpy(&l, data[i]+j*psize+x, sizeof(long));
+					memcpy(&l, data[i]+j*psize+x, sizeof(int32));
 					printf(" %08lx", l);
 				}
 				printf("    ");
@@ -103,7 +103,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 				if(j==0) printf("C%-2d p%-2d:", i,j);
 				else printf("    p%-2d:", j);
 				for(x = 0; x < psize; x +=4) {
-					memcpy(&l, coding[i]+j*psize+x, sizeof(long));
+					memcpy(&l, coding[i]+j*psize+x, sizeof(int32));
 					printf(" %08lx", l);
 				}
 			}
@@ -116,7 +116,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 
 int main(int argc, char **argv)
 {
-  long l;
+  int32 l;
   int k, w, i, j, m, psize, x;
   int *matrix, *bitmatrix;
   char **data, **coding;
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
   if (sscanf(argv[3], "%d", &w) == 0 || w <= 0 || w > 32) usage("Bad w");
   if (w < 30 && (k+m) > (1 << w)) usage("k + m is too big");
   if (sscanf(argv[4], "%d", &psize) == 0 || psize <= 0) usage("Bad packetsize");
-  if(psize%sizeof(long) != 0) usage("Packetsize must be multiple of sizeof(long)");
+  if(psize%sizeof(int32) != 0) usage("Packetsize must be multiple of sizeof(int32)");
 
   matrix = talloc(int, m*k);
   for (i = 0; i < m; i++) {
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
     for (j = 0; j < w; j++) {
 		for(x = 0; x < psize; x += 4) {
 			l = lrand48();
-			memcpy(data[i]+j*psize+x, &l, sizeof(long));
+			memcpy(data[i]+j*psize+x, &l, sizeof(int32));
 		}
 
     }
@@ -202,19 +202,19 @@ int main(int argc, char **argv)
   printf("And dm_ids:\n\n");
   jerasure_print_matrix(dm_ids, 1, k, w);
 
-  //memcpy(&l, data[0], sizeof(long));
+  //memcpy(&l, data[0], sizeof(int32));
   //printf("\nThe value of device #%d, word 0 is: %lx\n", 0, l);
   bzero(data[0], w*psize);
   jerasure_bitmatrix_dotprod(k, w, decoding_matrix, dm_ids, 0, data, coding, w*psize, psize);
 
   printf("\nAfter calling jerasure_matrix_dotprod, we calculate the value of device #0, packet 0 to be:\n");
 	printf("\nD0  p0 :");
-	for(i = 0; i < psize; i +=sizeof(long)) {
-		memcpy(&l, data[0]+i, sizeof(long));
+	for(i = 0; i < psize; i +=sizeof(int32)) {
+		memcpy(&l, data[0]+i, sizeof(int32));
 		printf(" %08lx", l);
 	}
 	printf("\n\n");
-  //memcpy(&l, data[0], sizeof(long));
+  //memcpy(&l, data[0], sizeof(int32));
 
   return 0;
 }
