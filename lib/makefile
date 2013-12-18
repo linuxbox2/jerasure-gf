@@ -30,16 +30,23 @@
 CC = gcc  
 CFLAGS = -O3 -I$(HOME)/include
 
-ALL =	galois.o jerasure.o reed_sol.o cauchy.o liberation.o
+ALL = libjerasure.a 
+
+OBJS=galois.o jerasure.o reed_sol.o cauchy.o liberation.o
 
 all: $(ALL)
+
+libjerasure.a: $(OBJS)
+	rm -f libjerasure.a
+	ar qcv libjerasure.a $(OBJS)
+	ranlib libjerasure.a
 
 clean:
 	rm -f core *.o $(ALL) a.out
 
-.SUFFIXES: .c .o
-.c.o:
-	$(CC) $(CFLAGS) -c $*.c
+#.SUFFIXES: .c .o
+#.c.o:
+#	$(CC) $(CFLAGS) -c $*.c
 
 galois.o: galois.h
 jerasure.o: jerasure.h galois.h

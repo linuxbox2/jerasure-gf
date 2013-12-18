@@ -44,7 +44,7 @@
 
 
 CC = gcc  
-CFLAGS = -O2 -I$(HOME)/include
+CFLAGS = -O2 -I../lib
 
 ALL =	jerasure_01 \
         jerasure_02 \
@@ -69,118 +69,91 @@ ALL =	jerasure_01 \
 all: $(ALL)
 
 clean:
-	rm -f core *.o $(ALL) a.out cauchy.h cauchy.c liberation.h liberation.c reed_sol.c reed_sol.h\
-              jerasure.c jerasure.h galois.c galois.h
+	rm -f core *.o $(ALL) a.out
 
-.SUFFIXES: .c .o
-.c.o:
-	$(CC) $(CFLAGS) -c $*.c
+#.SUFFIXES: .c .o
+#.c.o:
+	#$(CC) $(CFLAGS) -c $*.c
 
-liberation.h: ../liberation.h
-	rm -f liberation.h ; cp ../liberation.h . ; chmod 0444 liberation.h
+H=../lib/galois.h ../lib/jerasure.h
+H2=../lib/galois.h ../lib/reed_sol.h ../lib/jerasure.h
+H3=../lib/galois.h ../lib/cauchy.h ../lib/jerasure.h
+H4=../lib/galois.h ../lib/liberation.h ../lib/jerasure.h
+H5=../lib/galois.h ../lib/liberation.h ../lib/jerasure.h ../lib/reed_sol.h ../lib/cauchy.h
+L=../lib/libjerasure.a
 
-liberation.c: ../liberation.c
-	rm -f liberation.c ; cp ../liberation.c . ; chmod 0444 liberation.c
+jerasure_01.o: $(H)
+jerasure_01: jerasure_01.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_01 jerasure_01.o $(L)
 
-cauchy.h: ../cauchy.h
-	rm -f cauchy.h ; cp ../cauchy.h . ; chmod 0444 cauchy.h
+jerasure_02.o: $(H) 
+jerasure_02: jerasure_02.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_02 jerasure_02.o $(L)
 
-cauchy.c: ../cauchy.c
-	rm -f cauchy.c ; cp ../cauchy.c . ; chmod 0444 cauchy.c
+jerasure_03.o: $(H) 
+jerasure_03: jerasure_03.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_03 jerasure_03.o $(L)
 
-reed_sol.h: ../reed_sol.h
-	rm -f reed_sol.h ; cp ../reed_sol.h . ; chmod 0444 reed_sol.h
+jerasure_04.o: $(H) 
+jerasure_04: jerasure_04.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_04 jerasure_04.o $(L)
 
-reed_sol.c: ../reed_sol.c
-	rm -f reed_sol.c ; cp ../reed_sol.c . ; chmod 0444 reed_sol.c
+jerasure_05.o: $(H) 
+jerasure_05: jerasure_05.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_05 jerasure_05.o $(L)
 
-jerasure.h: ../jerasure.h
-	rm -f jerasure.h ; cp ../jerasure.h . ; chmod 0444 jerasure.h
+jerasure_06.o: $(H) 
+jerasure_06: jerasure_06.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_06 jerasure_06.o $(L)
 
-jerasure.c: ../jerasure.c
-	rm -f jerasure.c ; cp ../jerasure.c . ; chmod 0444 jerasure.c
+jerasure_07.o: $(H) 
+jerasure_07: jerasure_07.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_07 jerasure_07.o $(L)
 
-galois.h: ../galois.h
-	rm -f galois.h ; cp ../galois.h . ; chmod 0444 galois.h
+jerasure_08.o: $(H) 
+jerasure_08: jerasure_08.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_08 jerasure_08.o $(L)
 
-galois.c: ../galois.c
-	rm -f galois.c ; cp ../galois.c . ; chmod 0444 galois.c
+reed_sol_01.o: $(H2)
+reed_sol_01: reed_sol_01.o $(L)
+	$(CC) $(CFLAGS) -o reed_sol_01 reed_sol_01.o $(L)
 
-galois.o: galois.h
-jerasure.o: jerasure.h galois.h
+reed_sol_02.o: $(H2)
+reed_sol_02: reed_sol_02.o $(L)
+	$(CC) $(CFLAGS) -o reed_sol_02 reed_sol_02.o $(L)
 
-jerasure_01.o: galois.h jerasure.h 
-jerasure_01: jerasure_01.o galois.o jerasure.o
-	$(CC) $(CFLAGS) -o jerasure_01 jerasure_01.o jerasure.o galois.o
+reed_sol_03.o: $(H2)
+reed_sol_03: reed_sol_03.o $(L)
+	$(CC) $(CFLAGS) -o reed_sol_03 reed_sol_03.o $(L)
 
-jerasure_02.o: galois.h jerasure.h 
-jerasure_02: jerasure_02.o galois.o jerasure.o
-	$(CC) $(CFLAGS) -o jerasure_02 jerasure_02.o jerasure.o galois.o
+reed_sol_04.o: $(H2)
+reed_sol_04: reed_sol_04.o $(L)
+	$(CC) $(CFLAGS) -o reed_sol_04 reed_sol_04.o $(L)
 
-jerasure_03.o: galois.h jerasure.h 
-jerasure_03: jerasure_03.o galois.o jerasure.o
-	$(CC) $(CFLAGS) -o jerasure_03 jerasure_03.o jerasure.o galois.o
+cauchy_01.o: $(H3)
+cauchy_01: cauchy_01.o $(L)
+	$(CC) $(CFLAGS) -o cauchy_01 cauchy_01.o $(L)
 
-jerasure_04.o: galois.h jerasure.h 
-jerasure_04: jerasure_04.o galois.o jerasure.o
-	$(CC) $(CFLAGS) -o jerasure_04 jerasure_04.o jerasure.o galois.o
+cauchy_02.o: $(H3)
+cauchy_02: cauchy_02.o $(L)
+	$(CC) $(CFLAGS) -o cauchy_02 cauchy_02.o $(L)
 
-jerasure_05.o: galois.h jerasure.h 
-jerasure_05: jerasure_05.o galois.o jerasure.o
-	$(CC) $(CFLAGS) -o jerasure_05 jerasure_05.o jerasure.o galois.o
+cauchy_03.o: $(H3)
+cauchy_03: cauchy_03.o $(L)
+	$(CC) $(CFLAGS) -o cauchy_03 cauchy_03.o $(L)
 
-jerasure_06.o: galois.h jerasure.h 
-jerasure_06: jerasure_06.o galois.o jerasure.o
-	$(CC) $(CFLAGS) -o jerasure_06 jerasure_06.o jerasure.o galois.o
+cauchy_04.o: $(H3)
+cauchy_04: cauchy_04.o $(L)
+	$(CC) $(CFLAGS) -o cauchy_04 cauchy_04.o $(L)
 
-jerasure_07.o: galois.h jerasure.h 
-jerasure_07: jerasure_07.o galois.o jerasure.o
-	$(CC) $(CFLAGS) -o jerasure_07 jerasure_07.o jerasure.o galois.o
+liberation_01.o: $(H4)
+liberation_01: liberation_01.o $(L)
+	$(CC) $(CFLAGS) -o liberation_01 liberation_01.o $(L)
 
-jerasure_08.o: galois.h jerasure.h 
-jerasure_08: jerasure_08.o galois.o jerasure.o
-	$(CC) $(CFLAGS) -o jerasure_08 jerasure_08.o jerasure.o galois.o
+encoder.o: $(H5)
+encoder: encoder.o $(L) $(L)
+	$(CC) $(CFLAGS) -o encoder encoder.o $(L)
 
-reed_sol_01.o: galois.h reed_sol.h jerasure.h
-reed_sol_01: reed_sol_01.o galois.o jerasure.o reed_sol.o
-	$(CC) $(CFLAGS) -o reed_sol_01 reed_sol_01.o reed_sol.o jerasure.o galois.o
-
-reed_sol_02.o: galois.h reed_sol.h jerasure.h
-reed_sol_02: reed_sol_02.o galois.o jerasure.o reed_sol.o
-	$(CC) $(CFLAGS) -o reed_sol_02 reed_sol_02.o reed_sol.o jerasure.o galois.o
-
-reed_sol_03.o: galois.h reed_sol.h jerasure.h
-reed_sol_03: reed_sol_03.o galois.o jerasure.o reed_sol.o
-	$(CC) $(CFLAGS) -o reed_sol_03 reed_sol_03.o reed_sol.o jerasure.o galois.o
-
-reed_sol_04.o: galois.h reed_sol.h jerasure.h
-reed_sol_04: reed_sol_04.o galois.o jerasure.o reed_sol.o
-	$(CC) $(CFLAGS) -o reed_sol_04 reed_sol_04.o reed_sol.o jerasure.o galois.o
-
-cauchy_01.o: galois.h cauchy.h jerasure.h
-cauchy_01: cauchy_01.o galois.o jerasure.o cauchy.o
-	$(CC) $(CFLAGS) -o cauchy_01 cauchy_01.o cauchy.o jerasure.o galois.o
-
-cauchy_02.o: galois.h cauchy.h jerasure.h
-cauchy_02: cauchy_02.o galois.o jerasure.o cauchy.o
-	$(CC) $(CFLAGS) -o cauchy_02 cauchy_02.o cauchy.o jerasure.o galois.o
-
-cauchy_03.o: galois.h cauchy.h jerasure.h
-cauchy_03: cauchy_03.o galois.o jerasure.o cauchy.o
-	$(CC) $(CFLAGS) -o cauchy_03 cauchy_03.o cauchy.o jerasure.o galois.o
-
-cauchy_04.o: galois.h cauchy.h jerasure.h
-cauchy_04: cauchy_04.o galois.o jerasure.o cauchy.o
-	$(CC) $(CFLAGS) -o cauchy_04 cauchy_04.o cauchy.o jerasure.o galois.o
-
-liberation_01.o: galois.h liberation.h jerasure.h
-liberation_01: liberation_01.o galois.o jerasure.o liberation.o
-	$(CC) $(CFLAGS) -o liberation_01 liberation_01.o liberation.o jerasure.o galois.o
-
-encoder.o: galois.h liberation.h jerasure.h reed_sol.h cauchy.h
-encoder: encoder.o galois.o jerasure.o liberation.o reed_sol.o cauchy.o
-	$(CC) $(CFLAGS) -o encoder encoder.o liberation.o jerasure.o galois.o reed_sol.o cauchy.o
-
-decoder.o: galois.h liberation.h jerasure.h reed_sol.h cauchy.h
-decoder: decoder.o galois.o jerasure.o liberation.o reed_sol.o cauchy.o
-	$(CC) $(CFLAGS) -o decoder decoder.o liberation.o jerasure.o galois.o reed_sol.o cauchy.o
+decoder.o: $(H5)
+decoder: decoder.o $(L)
+	$(CC) $(CFLAGS) -o decoder decoder.o $(L)
