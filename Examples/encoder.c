@@ -128,7 +128,6 @@ int main (int argc, char **argv) {
 	char *s1, *s2, *extension;
 	char *fname;
 	int md;
-	char *curdir;
 	
 	/* Timing variables */
 	struct timeval t1, t2, t3, t4;
@@ -327,10 +326,6 @@ int main (int argc, char **argv) {
 	/* Set global variable method for signal handler */
 	method = tech;
 
-	/* Get current working directory for construction of file names */
-	curdir = (char*)malloc(sizeof(char)*1000);	
-	getcwd(curdir, 1000);
-
         if (argv[1][0] != '-') {
 
 		/* Open file and error check */
@@ -421,7 +416,7 @@ int main (int argc, char **argv) {
         }
 	
 	/* Allocate for full file name */
-	fname = (char*)malloc(sizeof(char)*(strlen(argv[1])+strlen(curdir)+10));
+	fname = (char*)malloc(sizeof(char)*(strlen(argv[1])+10));
 	sprintf(temp, "%d", k);
 	md = strlen(temp);
 	
@@ -539,7 +534,7 @@ int main (int argc, char **argv) {
 			if (fp == NULL) {
 				memset(data[i-1], 0, blocksize);
  			} else {
-				sprintf(fname, "%s/Coding/%s_k%0*d%s", curdir, s1, md, i, extension);
+				sprintf(fname, "Coding/%s_k%0*d%s", s1, md, i, extension);
 				if (n == 1) {
 					fp2 = fopen(fname, "wb");
 				}
@@ -555,7 +550,7 @@ int main (int argc, char **argv) {
 			if (fp == NULL) {
 				memset(data[i-1], 0, blocksize);
  			} else {
-				sprintf(fname, "%s/Coding/%s_m%0*d%s", curdir, s1, md, i, extension);
+				sprintf(fname, "Coding/%s_m%0*d%s", s1, md, i, extension);
 				if (n == 1) {
 					fp2 = fopen(fname, "wb");
 				}
@@ -579,7 +574,7 @@ int main (int argc, char **argv) {
 
 	/* Create metadata file */
         if (fp != NULL) {
-		sprintf(fname, "%s/Coding/%s_meta.txt", curdir, s1);
+		sprintf(fname, "Coding/%s_meta.txt", s1);
 		fp2 = fopen(fname, "wb");
 		fprintf(fp2, "%s\n", argv[1]);
 		fprintf(fp2, "%d\n", size);
@@ -595,7 +590,6 @@ int main (int argc, char **argv) {
 	free(s1);
 	free(fname);
 	free(block);
-	free(curdir);
 	
 	/* Calculate rate in MB/sec and print */
 	gettimeofday(&t2, &tz);

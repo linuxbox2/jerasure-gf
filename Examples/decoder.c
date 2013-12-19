@@ -114,7 +114,6 @@ int main (int argc, char **argv) {
 	char *cs1, *cs2, *extension;
 	char *fname;
 	int md;
-	char *curdir;
 
 	/* Used to time decoding */
 	struct timeval t1, t2, t3, t4;
@@ -137,9 +136,6 @@ int main (int argc, char **argv) {
 		fprintf(stderr, "usage: inputfile\n");
 		exit(0);
 	}
-	curdir = (char *)malloc(sizeof(char)*100);
-	getcwd(curdir, 100);
-	
 	/* Begin recreation of file names */
 	cs1 = (char*)malloc(sizeof(char)*strlen(argv[1]));
 	cs2 = strrchr(argv[1], '/');
@@ -160,7 +156,7 @@ int main (int argc, char **argv) {
 	fname = (char *)malloc(sizeof(char*)*(100+strlen(argv[1])+10));
 
 	/* Read in parameters from metadata file */
-	sprintf(fname, "%s/Coding/%s_meta.txt", curdir, cs1);
+	sprintf(fname, "Coding/%s_meta.txt", cs1);
 
 	fp = fopen(fname, "rb");
         if (fp == NULL) {
@@ -250,7 +246,7 @@ int main (int argc, char **argv) {
 		numerased = 0;
 		/* Open files, check for erasures, read in data/coding */	
 		for (i = 1; i <= k; i++) {
-			sprintf(fname, "%s/Coding/%s_k%0*d%s", curdir, cs1, md, i, extension);
+			sprintf(fname, "Coding/%s_k%0*d%s", cs1, md, i, extension);
 			fp = fopen(fname, "rb");
 			if (fp == NULL) {
 				erased[i-1] = 1;
@@ -273,7 +269,7 @@ int main (int argc, char **argv) {
 			}
 		}
 		for (i = 1; i <= m; i++) {
-			sprintf(fname, "%s/Coding/%s_m%0*d%s", curdir, cs1, md, i, extension);
+			sprintf(fname, "Coding/%s_m%0*d%s", cs1, md, i, extension);
 				fp = fopen(fname, "rb");
 			if (fp == NULL) {
 				erased[k+(i-1)] = 1;
@@ -330,7 +326,7 @@ int main (int argc, char **argv) {
 		}
 	
 		/* Create decoded file */
-		sprintf(fname, "%s/Coding/%s_decoded%s", curdir, cs1, extension);
+		sprintf(fname, "Coding/%s_decoded%s", cs1, extension);
 		if (n == 1) {
 			fp = fopen(fname, "wb");
 		}
