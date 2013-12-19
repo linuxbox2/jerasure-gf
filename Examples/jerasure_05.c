@@ -61,7 +61,7 @@ usage(char *s)
   fprintf(stderr, "       \n");
   fprintf(stderr, "       k+m must be <= 2^w.  w can be 8, 16 or 32.\n");
   fprintf(stderr, "       It sets up a Cauchy distribution matrix and encodes\n");
-  fprintf(stderr, "       k devices of size bytes with it.  Then it decodes.\n", sizeof(int32));
+  fprintf(stderr, "       k devices of size bytes with it.  Then it decodes.\n", sizeof(gdata));
   fprintf(stderr, "       After that, it decodes device 0 by using jerasure_make_decoding_matrix()\n");
   fprintf(stderr, "       and jerasure_matrix_dotprod().\n");
   fprintf(stderr, "       \n");
@@ -74,47 +74,9 @@ usage(char *s)
   exit(1);
 }
 
-static void print_data_and_coding(int k, int m, int w, int size, 
-		char **data, char **coding) 
-{
-  int i, j, x;
-  int n, sp;
-  int32 l;
-
-  if(k > m) n = k;
-  else n = m;
-  sp = size * 2 + size/(w/8) + 8;
-
-  printf("%-*sCoding\n", sp, "Data");
-  for(i = 0; i < n; i++) {
-	  if(i < k) {
-		  printf("D%-2d:", i);
-		  for(j=0;j< size; j+=(w/8)) { 
-			  printf(" ");
-			  for(x=0;x < w/8;x++){
-				printf("%02x", (unsigned char)data[i][j+x]);
-			  }
-		  }
-		  printf("    ");
-	  }
-	  else printf("%*s", sp, "");
-	  if(i < m) {
-		  printf("C%-2d:", i);
-		  for(j=0;j< size; j+=(w/8)) { 
-			  printf(" ");
-			  for(x=0;x < w/8;x++){
-				printf("%02x", (unsigned char)coding[i][j+x]);
-			  }
-		  }
-	  }
-	  printf("\n");
-  }
-	printf("\n");
-}
-
 int main(int argc, char **argv)
 {
-  int32 l;
+  gdata l;
   int k, m, w, size;
   int i, j;
   int *matrix;
@@ -128,8 +90,8 @@ int main(int argc, char **argv)
   if (sscanf(argv[3], "%d", &w) == 0 || (w != 8 && w != 16 && w != 32))
 		  usage("Bad w");
   if (w < 32 && k + m > (1 << w)) usage("k + m must be <= 2 ^ w");
-  if (sscanf(argv[4], "%d", &size) == 0 || size % sizeof(int32) != 0) 
-		usage("size must be multiple of sizeof(int32)");
+  if (sscanf(argv[4], "%d", &size) == 0 || size % sizeof(gdata) != 0) 
+		usage("size must be multiple of sizeof(gdata)");
 
   matrix = talloc(int, m*k);
   for (i = 0; i < m; i++) {
@@ -157,7 +119,7 @@ int main(int argc, char **argv)
   jerasure_matrix_encode(k, m, w, matrix, data, coding, size);
   
   printf("Encoding Complete:\n\n");
-  print_data_and_coding(k, m, w, size, data, coding);
+  print_data_and_coding_1(k, m, w, size, data, coding);
 
   erasures = talloc(int, (m+1));
   erased = talloc(int, (k+m));
@@ -175,12 +137,12 @@ int main(int argc, char **argv)
   erasures[i] = -1;
 
   printf("Erased %d random devices:\n\n", m);
-  print_data_and_coding(k, m, w, size, data, coding);
+  print_data_and_coding_1(k, m, w, size, data, coding);
   
   i = jerasure_matrix_decode(k, m, w, matrix, 0, erasures, data, coding, size);
 
   printf("State of the system after decoding:\n\n");
-  print_data_and_coding(k, m, w, size, data, coding);
+  print_data_and_coding_1(k, m, w, size, data, coding);
   
   decoding_matrix = talloc(int, k*k);
   dm_ids = talloc(int, k);

@@ -60,7 +60,7 @@ usage(char *s)
   fprintf(stderr, "usage: jerasure_06 k m w packetsize\n");
   fprintf(stderr, "Does a simple Cauchy Reed-Solomon coding example in GF(2^w).\n");
   fprintf(stderr, "       \n");
-  fprintf(stderr, "       k+m must be < 2^w.  Packetsize must be a multiple of sizeof(int32)\n");
+  fprintf(stderr, "       k+m must be < 2^w.  Packetsize must be a multiple of sizeof(gdata)\n");
   fprintf(stderr, "       It sets up a Cauchy distribution matrix and encodes k devices of w*packetsize bytes.\n");
   fprintf(stderr, "       After that, it decodes device 0 by using jerasure_make_decoding_bitmatrix()\n");
   fprintf(stderr, "       and jerasure_bitmatrix_dotprod().\n");
@@ -74,48 +74,9 @@ usage(char *s)
   exit(1);
 }
 
-static void print_data_and_coding(int k, int m, int w, int psize, 
-		char **data, char **coding) 
-{
-	int i, j, x, n, sp;
-	int32 l;
-
-	if(k > m) n = k;
-	else n = m;
-	sp = psize * 2 + (psize/sizeof(int32)) + 12;
-
-	printf("%-*sCoding\n", sp, "Data");
-	for(i = 0; i < n; i++) {
-		for (j = 0; j < w; j++) {
-			if(i < k) {
-
-				if(j==0) printf("D%-2d p%-2d:", i,j);
-				else printf("    p%-2d:", j);
-				for(x = 0; x < psize; x +=sizeof(int32)) {
-					memcpy(&l, data[i]+j*psize+x, sizeof(int32));
-					printf(" %08lx", l);
-				}
-				printf("    ");
-			}
-			else printf("%*s", sp, "");
-			if(i < m) {
-				if(j==0) printf("C%-2d p%-2d:", i,j);
-				else printf("    p%-2d:", j);
-				for(x = 0; x < psize; x +=sizeof(int32)) {
-					memcpy(&l, coding[i]+j*psize+x, sizeof(int32));
-					printf(" %08lx", l);
-				}
-			}
-			printf("\n");
-		}
-	}
-
-    printf("\n");
-}
-
 int main(int argc, char **argv)
 {
-  int32 l;
+  gdata l;
   int k, w, i, j, m, psize, x;
   int *matrix, *bitmatrix;
   char **data, **coding;
@@ -128,7 +89,7 @@ int main(int argc, char **argv)
   if (sscanf(argv[3], "%d", &w) == 0 || w <= 0 || w > 32) usage("Bad w");
   if (w < 30 && (k+m) > (1 << w)) usage("k + m is too big");
   if (sscanf(argv[4], "%d", &psize) == 0 || psize <= 0) usage("Bad packetsize");
-  if(psize%sizeof(int32) != 0) usage("Packetsize must be multiple of sizeof(int32)");
+  if(psize%sizeof(gdata) != 0) usage("Packetsize must be multiple of sizeof(gdata)");
 
   matrix = talloc(int, m*k);
   for (i = 0; i < m; i++) {
@@ -157,7 +118,7 @@ int main(int argc, char **argv)
   jerasure_bitmatrix_encode(k, m, w, bitmatrix, data, coding, w*psize, psize);
   
   printf("Encoding Complete:\n\n");
-  print_data_and_coding(k, m, w, psize, data, coding);
+  print_data_and_coding_2(k, m, w, psize, data, coding);
 
   erasures = talloc(int, (m+1));
   erased = talloc(int, (k+m));
@@ -173,13 +134,13 @@ int main(int argc, char **argv)
   erasures[i] = -1;
 
   printf("Erased %d random devices:\n\n", m);
-  print_data_and_coding(k, m, w, psize, data, coding);
+  print_data_and_coding_2(k, m, w, psize, data, coding);
   
   i = jerasure_bitmatrix_decode(k, m, w, bitmatrix, 0, erasures, data, coding, 
 		  w*psize, psize);
 
   printf("State of the system after decoding:\n\n");
-  print_data_and_coding(k, m, w, psize, data, coding);
+  print_data_and_coding_2(k, m, w, psize, data, coding);
   
   decoding_matrix = talloc(int, k*k*w*w);
   dm_ids = talloc(int, k);
@@ -195,19 +156,19 @@ int main(int argc, char **argv)
   printf("And dm_ids:\n\n");
   jerasure_print_matrix(dm_ids, 1, k, w);
 
-  //memcpy(&l, data[0], sizeof(int32));
+  //memcpy(&l, data[0], sizeof(gdata));
   //printf("\nThe value of device #%d, word 0 is: %lx\n", 0, l);
   memset(data[0], 0, w*psize);
   jerasure_bitmatrix_dotprod(k, w, decoding_matrix, dm_ids, 0, data, coding, w*psize, psize);
 
   printf("\nAfter calling jerasure_matrix_dotprod, we calculate the value of device #0, packet 0 to be:\n");
 	printf("\nD0  p0 :");
-	for(i = 0; i < psize; i +=sizeof(int32)) {
-		memcpy(&l, data[0]+i, sizeof(int32));
+	for(i = 0; i < psize; i +=sizeof(gdata)) {
+		memcpy(&l, data[0]+i, sizeof(gdata));
 		printf(" %08lx", l);
 	}
 	printf("\n\n");
-  //memcpy(&l, data[0], sizeof(int32));
+  //memcpy(&l, data[0], sizeof(gdata));
 
   return 0;
 }

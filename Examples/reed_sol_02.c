@@ -71,7 +71,7 @@ usage(char *s)
 
 int main(int argc, char **argv)
 {
-  int32 l;
+  gdata l;
   int k, w, i, j, m;
   int *matrix;
   

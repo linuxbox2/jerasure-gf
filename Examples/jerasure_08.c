@@ -61,7 +61,7 @@ usage(char *s)
   fprintf(stderr, "usage: jerasure_08 k w - Example schedule cache usage with RAID-6\n");
   fprintf(stderr, "       \n");
   fprintf(stderr, "       m=2.  k+m must be <= 2^w.  It sets up a RAID-6 distribution matrix and encodes\n");
-  fprintf(stderr, "       k sets of w*%d bytes. It creates a schedule cache for decoding.\n", sizeof(int32));
+  fprintf(stderr, "       k sets of w*%d bytes. It creates a schedule cache for decoding.\n", sizeof(gdata));
   fprintf(stderr, "       It demonstrates using the schedule cache for both encoding and decoding.\n");
   fprintf(stderr, "       Then it demonstrates using jerasure_do_parity() to re-encode the first.\n");
   fprintf(stderr, "       coding device\n");
@@ -79,48 +79,9 @@ usage(char *s)
 }
 
 
-static void print_data_and_coding(int k, int m, int w, int psize, 
-		char **data, char **coding) 
-{
-	int i, j, x, n, sp;
-	int32 l;
-
-	if(k > m) n = k;
-	else n = m;
-	sp = psize * 2 + (psize/sizeof(int32)) + 12;
-
-	printf("%-*sCoding\n", sp, "Data");
-	for(i = 0; i < n; i++) {
-		for (j = 0; j < w; j++) {
-			if(i < k) {
-
-				if(j==0) printf("D%-2d p%-2d:", i,j);
-				else printf("    p%-2d:", j);
-				for(x = 0; x < psize; x +=sizeof(int32)) {
-					memcpy(&l, data[i]+j*psize+x, sizeof(int32));
-					printf(" %08lx", l);
-				}
-				printf("    ");
-			}
-			else printf("%*s", sp, "");
-			if(i < m) {
-				if(j==0) printf("C%-2d p%-2d:", i,j);
-				else printf("    p%-2d:", j);
-				for(x = 0; x < psize; x +=sizeof(int32)) {
-					memcpy(&l, coding[i]+j*psize+x, sizeof(int32));
-					printf(" %08lx", l);
-				}
-			}
-			printf("\n");
-		}
-	}
-
-    printf("\n");
-}
-
 int main(int argc, char **argv)
 {
-  int32 l;
+  gdata l;
   int k, w, i, j, m;
   int *matrix, *bitmatrix;
   char **data, **coding, **ptrs;
@@ -149,30 +110,30 @@ int main(int argc, char **argv)
   srand48(0);
   data = talloc(char *, k);
   for (i = 0; i < k; i++) {
-    data[i] = talloc(char, sizeof(int32)*w);
-    fillrand(data[i], sizeof(int32)*w);
+    data[i] = talloc(char, sizeof(gdata)*w);
+    fillrand(data[i], sizeof(gdata)*w);
   }
 
   coding = talloc(char *, m);
   for (i = 0; i < m; i++) {
-    coding[i] = talloc(char, sizeof(int32)*w);
+    coding[i] = talloc(char, sizeof(gdata)*w);
   }
 
-  jerasure_schedule_encode(k, m, w, smart, data, coding, w*sizeof(int32), sizeof(int32));
+  jerasure_schedule_encode(k, m, w, smart, data, coding, w*sizeof(gdata), sizeof(gdata));
   jerasure_get_stats(stats);
   printf("Encoding Complete: - %.0lf XOR'd bytes\n\n", stats[0]);
-  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
+  print_data_and_coding_2(k, m, w, sizeof(gdata), data, coding);
 
   erasures = talloc(int, (m+1));
   erasures[0] = k;
   erasures[1] = k+1;
   erasures[2] = -1;
-  for (j = 0; j < m; j++) memset(coding[j], 0, sizeof(int32)*w);
+  for (j = 0; j < m; j++) memset(coding[j], 0, sizeof(gdata)*w);
 
-  jerasure_schedule_decode_cache(k, m, w, cache, erasures, data, coding, w*sizeof(int32), sizeof(int32));
+  jerasure_schedule_decode_cache(k, m, w, cache, erasures, data, coding, w*sizeof(gdata), sizeof(gdata));
   jerasure_get_stats(stats);
   printf("Encoding Using the Schedule Cache: - %.0lf XOR'd bytes\n\n", stats[0]);
-  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
+  print_data_and_coding_2(k, m, w, sizeof(gdata), data, coding);
 
   erased = talloc(int, (k+m));
   for (i = 0; i < m+k; i++) erased[i] = 0;
@@ -180,26 +141,26 @@ int main(int argc, char **argv)
     erasures[i] = lrand48()%(k+m);
     if (erased[erasures[i]] == 0) {
       erased[erasures[i]] = 1;
-      memset((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], 0, sizeof(int32)*w);
+      memset((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], 0, sizeof(gdata)*w);
       i++;
     }
   }
   erasures[i] = -1;
 
   printf("Erased %d random devices:\n\n", m);
-  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
+  print_data_and_coding_2(k, m, w, sizeof(gdata), data, coding);
   
-  jerasure_schedule_decode_cache(k, m, w, cache, erasures, data, coding, w*sizeof(int32), sizeof(int32));
+  jerasure_schedule_decode_cache(k, m, w, cache, erasures, data, coding, w*sizeof(gdata), sizeof(gdata));
   jerasure_get_stats(stats);
 
   printf("State of the system after decoding: %.0lf XOR'd bytes\n\n", stats[0]);
-  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
+  print_data_and_coding_2(k, m, w, sizeof(gdata), data, coding);
   
-  memset(coding[0], 0, sizeof(int32)*w);
-  jerasure_do_parity(k, data, coding[0], sizeof(int32)*w);
+  memset(coding[0], 0, sizeof(gdata)*w);
+  jerasure_do_parity(k, data, coding[0], sizeof(gdata)*w);
   printf("State of the system after deleting coding device 0 and using\n");
   printf("jerasure_do_parity to re-encode it:\n\n");
-  print_data_and_coding(k, m, w, sizeof(int32), data, coding);
+  print_data_and_coding_2(k, m, w, sizeof(gdata), data, coding);
   
   jerasure_free_schedule(smart);
   jerasure_free_schedule_cache(k, m, cache);
