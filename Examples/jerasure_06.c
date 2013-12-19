@@ -53,8 +53,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include "jerasure.h"
-
-#define talloc(type, num) (type *) malloc(sizeof(type)*(num))
+#include "examples.h"
 
 usage(char *s)
 {
@@ -83,7 +82,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 
 	if(k > m) n = k;
 	else n = m;
-	sp = psize * 2 + (psize/4) + 12;
+	sp = psize * 2 + (psize/sizeof(int32)) + 12;
 
 	printf("%-*sCoding\n", sp, "Data");
 	for(i = 0; i < n; i++) {
@@ -92,7 +91,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 
 				if(j==0) printf("D%-2d p%-2d:", i,j);
 				else printf("    p%-2d:", j);
-				for(x = 0; x < psize; x +=4) {
+				for(x = 0; x < psize; x +=sizeof(int32)) {
 					memcpy(&l, data[i]+j*psize+x, sizeof(int32));
 					printf(" %08lx", l);
 				}
@@ -102,7 +101,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 			if(i < m) {
 				if(j==0) printf("C%-2d p%-2d:", i,j);
 				else printf("    p%-2d:", j);
-				for(x = 0; x < psize; x +=4) {
+				for(x = 0; x < psize; x +=sizeof(int32)) {
 					memcpy(&l, coding[i]+j*psize+x, sizeof(int32));
 					printf(" %08lx", l);
 				}
@@ -147,13 +146,7 @@ int main(int argc, char **argv)
   data = talloc(char *, k);
   for (i = 0; i < k; i++) {
     data[i] = talloc(char, psize*w);
-    for (j = 0; j < w; j++) {
-		for(x = 0; x < psize; x += 4) {
-			l = lrand48();
-			memcpy(data[i]+j*psize+x, &l, sizeof(int32));
-		}
-
-    }
+    fillrand(data[i], psize*w);
   }
 
   coding = talloc(char *, m);
@@ -173,7 +166,7 @@ int main(int argc, char **argv)
     erasures[i] = lrand48()%(k+m);
     if (erased[erasures[i]] == 0) {
       erased[erasures[i]] = 1;
-      bzero((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], psize*w);
+      memset((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], 0, psize*w);
       i++;
     }
   }
@@ -204,7 +197,7 @@ int main(int argc, char **argv)
 
   //memcpy(&l, data[0], sizeof(int32));
   //printf("\nThe value of device #%d, word 0 is: %lx\n", 0, l);
-  bzero(data[0], w*psize);
+  memset(data[0], 0, w*psize);
   jerasure_bitmatrix_dotprod(k, w, decoding_matrix, dm_ids, 0, data, coding, w*psize, psize);
 
   printf("\nAfter calling jerasure_matrix_dotprod, we calculate the value of device #0, packet 0 to be:\n");

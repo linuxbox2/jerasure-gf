@@ -54,8 +54,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include "jerasure.h"
-
-#define talloc(type, num) (type *) malloc(sizeof(type)*(num))
+#include "examples.h"
 
 usage(char *s)
 {
@@ -88,7 +87,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 
 	if(k > m) n = k;
 	else n = m;
-	sp = psize * 2 + (psize/4) + 12;
+	sp = psize * 2 + (psize/sizeof(int32)) + 12;
 
 	printf("%-*sCoding\n", sp, "Data");
 	for(i = 0; i < n; i++) {
@@ -97,7 +96,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 
 				if(j==0) printf("D%-2d p%-2d:", i,j);
 				else printf("    p%-2d:", j);
-				for(x = 0; x < psize; x +=4) {
+				for(x = 0; x < psize; x +=sizeof(int32)) {
 					memcpy(&l, data[i]+j*psize+x, sizeof(int32));
 					printf(" %08lx", l);
 				}
@@ -107,7 +106,7 @@ static void print_data_and_coding(int k, int m, int w, int psize,
 			if(i < m) {
 				if(j==0) printf("C%-2d p%-2d:", i,j);
 				else printf("    p%-2d:", j);
-				for(x = 0; x < psize; x +=4) {
+				for(x = 0; x < psize; x +=sizeof(int32)) {
 					memcpy(&l, coding[i]+j*psize+x, sizeof(int32));
 					printf(" %08lx", l);
 				}
@@ -151,10 +150,7 @@ int main(int argc, char **argv)
   data = talloc(char *, k);
   for (i = 0; i < k; i++) {
     data[i] = talloc(char, sizeof(int32)*w);
-    for (j = 0; j < w; j++) {
-      l = lrand48();
-      memcpy(data[i]+j*sizeof(int32), &l, sizeof(int32));
-    }
+    fillrand(data[i], sizeof(int32)*w);
   }
 
   coding = talloc(char *, m);
@@ -171,7 +167,7 @@ int main(int argc, char **argv)
   erasures[0] = k;
   erasures[1] = k+1;
   erasures[2] = -1;
-  for (j = 0; j < m; j++) bzero(coding[j], sizeof(int32)*w);
+  for (j = 0; j < m; j++) memset(coding[j], 0, sizeof(int32)*w);
 
   jerasure_schedule_decode_cache(k, m, w, cache, erasures, data, coding, w*sizeof(int32), sizeof(int32));
   jerasure_get_stats(stats);
@@ -184,7 +180,7 @@ int main(int argc, char **argv)
     erasures[i] = lrand48()%(k+m);
     if (erased[erasures[i]] == 0) {
       erased[erasures[i]] = 1;
-      bzero((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], sizeof(int32)*w);
+      memset((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], 0, sizeof(int32)*w);
       i++;
     }
   }
@@ -199,7 +195,7 @@ int main(int argc, char **argv)
   printf("State of the system after decoding: %.0lf XOR'd bytes\n\n", stats[0]);
   print_data_and_coding(k, m, w, sizeof(int32), data, coding);
   
-  bzero(coding[0], sizeof(int32)*w);
+  memset(coding[0], 0, sizeof(int32)*w);
   jerasure_do_parity(k, data, coding[0], sizeof(int32)*w);
   printf("State of the system after deleting coding device 0 and using\n");
   printf("jerasure_do_parity to re-encode it:\n\n");

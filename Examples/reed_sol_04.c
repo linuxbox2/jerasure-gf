@@ -51,8 +51,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include "jerasure.h"
 #include "reed_sol.h"
-
-#define talloc(type, num) (type *) malloc(sizeof(type)*(num))
+#include "examples.h"
 
 usage(char *s)
 {
@@ -84,7 +83,7 @@ int main(int argc, char **argv)
   a32 = talloc(int, 4);
   copy = talloc(int, 4);
   y = (unsigned char *) a32;
-  for (i = 0; i < 4*sizeof(int); i++) y[i] = lrand48()%255;
+  fillrand(y, 4*sizeof(int));
   memcpy(copy, a32, sizeof(int)*4);
 
   if (w == 8) {

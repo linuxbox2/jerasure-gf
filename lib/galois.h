@@ -108,7 +108,7 @@ void galois_w32_region_multiply(char *region,       /* Region to multiply */
                                                        Otherwise region is overwritten */
                                   int add);         /* If (r2 != NULL && add) the produce is XOR'd with r2 */
 
-typedef unsigned int uint32;
-typedef int int32;
+typedef unsigned long uint32;
+typedef long int32;
 
 #endif

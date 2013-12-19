@@ -44,7 +44,7 @@
 
 
 CC = gcc  
-CFLAGS = -O2 -I../lib
+CFLAGS = -O2 -I../lib -g
 
 ALL =	jerasure_01 \
         jerasure_02 \
@@ -99,56 +99,56 @@ jerasure_04: jerasure_04.o $(L)
 	$(CC) $(CFLAGS) -o jerasure_04 jerasure_04.o $(L)
 
 jerasure_05.o: $(H) 
-jerasure_05: jerasure_05.o $(L)
-	$(CC) $(CFLAGS) -o jerasure_05 jerasure_05.o $(L)
+jerasure_05: jerasure_05.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_05 jerasure_05.o fillrand.o $(L)
 
 jerasure_06.o: $(H) 
-jerasure_06: jerasure_06.o $(L)
-	$(CC) $(CFLAGS) -o jerasure_06 jerasure_06.o $(L)
+jerasure_06: jerasure_06.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_06 jerasure_06.o fillrand.o $(L)
 
 jerasure_07.o: $(H) 
-jerasure_07: jerasure_07.o $(L)
-	$(CC) $(CFLAGS) -o jerasure_07 jerasure_07.o $(L)
+jerasure_07: jerasure_07.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_07 jerasure_07.o fillrand.o $(L)
 
 jerasure_08.o: $(H) 
-jerasure_08: jerasure_08.o $(L)
-	$(CC) $(CFLAGS) -o jerasure_08 jerasure_08.o $(L)
+jerasure_08: jerasure_08.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o jerasure_08 jerasure_08.o fillrand.o $(L)
 
 reed_sol_01.o: $(H2)
-reed_sol_01: reed_sol_01.o $(L)
-	$(CC) $(CFLAGS) -o reed_sol_01 reed_sol_01.o $(L)
+reed_sol_01: reed_sol_01.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o reed_sol_01 reed_sol_01.o fillrand.o $(L)
 
 reed_sol_02.o: $(H2)
 reed_sol_02: reed_sol_02.o $(L)
 	$(CC) $(CFLAGS) -o reed_sol_02 reed_sol_02.o $(L)
 
 reed_sol_03.o: $(H2)
-reed_sol_03: reed_sol_03.o $(L)
-	$(CC) $(CFLAGS) -o reed_sol_03 reed_sol_03.o $(L)
+reed_sol_03: reed_sol_03.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o reed_sol_03 reed_sol_03.o fillrand.o $(L)
 
 reed_sol_04.o: $(H2)
-reed_sol_04: reed_sol_04.o $(L)
-	$(CC) $(CFLAGS) -o reed_sol_04 reed_sol_04.o $(L)
+reed_sol_04: reed_sol_04.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o reed_sol_04 reed_sol_04.o fillrand.o $(L)
 
 cauchy_01.o: $(H3)
 cauchy_01: cauchy_01.o $(L)
 	$(CC) $(CFLAGS) -o cauchy_01 cauchy_01.o $(L)
 
 cauchy_02.o: $(H3)
-cauchy_02: cauchy_02.o $(L)
-	$(CC) $(CFLAGS) -o cauchy_02 cauchy_02.o $(L)
+cauchy_02: cauchy_02.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o cauchy_02 cauchy_02.o fillrand.o $(L)
 
 cauchy_03.o: $(H3)
-cauchy_03: cauchy_03.o $(L)
-	$(CC) $(CFLAGS) -o cauchy_03 cauchy_03.o $(L)
+cauchy_03: cauchy_03.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o cauchy_03 cauchy_03.o fillrand.o $(L)
 
 cauchy_04.o: $(H3)
-cauchy_04: cauchy_04.o $(L)
-	$(CC) $(CFLAGS) -o cauchy_04 cauchy_04.o $(L)
+cauchy_04: cauchy_04.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o cauchy_04 cauchy_04.o fillrand.o $(L)
 
 liberation_01.o: $(H4)
-liberation_01: liberation_01.o $(L)
-	$(CC) $(CFLAGS) -o liberation_01 liberation_01.o $(L)
+liberation_01: liberation_01.o fillrand.o $(L)
+	$(CC) $(CFLAGS) -o liberation_01 liberation_01.o fillrand.o $(L)
 
 encoder.o: $(H5)
 encoder: encoder.o $(L) $(L)

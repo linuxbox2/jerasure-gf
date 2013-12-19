@@ -53,8 +53,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include "jerasure.h"
-
-#define talloc(type, num) (type *) malloc(sizeof(type)*(num))
+#include "examples.h"
 
 usage(char *s)
 {
@@ -147,10 +146,7 @@ int main(int argc, char **argv)
   data = talloc(char *, k);
   for (i = 0; i < k; i++) {
     data[i] = talloc(char, size);
-	for(j = 0; j < size; j+=sizeof(int32)) {
-		l = lrand48();
-		memcpy(data[i] + j, &l, sizeof(int32));
-	}
+    fillrand(data[i], size);
   }
 
   coding = talloc(char *, m);
@@ -172,7 +168,7 @@ int main(int argc, char **argv)
     if (erased[erasures[i]] == 0) {
       erased[erasures[i]] = 1;
 	  
-      bzero((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], size);
+      memset((erasures[i] < k) ? data[erasures[i]] : coding[erasures[i]-k], 0, size);
       i++;
     }
   }
@@ -200,7 +196,7 @@ int main(int argc, char **argv)
   printf("And dm_ids:\n\n");
   jerasure_print_matrix(dm_ids, 1, k, w);
 
-  bzero(data[0], size);
+  memset(data[0], 0, size);
   jerasure_matrix_dotprod(k, w, decoding_matrix, dm_ids, 0, data, coding, size);
 
   printf("\nAfter calling jerasure_matrix_dotprod, we calculate the value of device #0 to be:\n\n");
