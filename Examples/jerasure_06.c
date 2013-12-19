@@ -169,6 +169,21 @@ int main(int argc, char **argv)
 	}
 	printf("\n\n");
   //memcpy(&l, data[0], sizeof(gdata));
+  /* free data to avoid false positives for leak testing */
+  free(dm_ids);
+  free(decoding_matrix);
+  free(erased);
+  free(erasures);
+  for (i = 0; i < m; i++) {
+    free(coding[i]);
+  }
+  free(coding);
+  for (i = 0; i < k; i++) {
+    free(data[i]);
+  }
+  free(data);
+  free(bitmatrix);
+  free(matrix);
 
   return 0;
 }

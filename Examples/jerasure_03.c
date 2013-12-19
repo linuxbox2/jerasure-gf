@@ -107,7 +107,11 @@ int main(int argc, char **argv)
     identity = jerasure_matrix_multiply(inverse, matrix, k, k, k, k, w);
     printf("\nInverse times matrix (should be identity):\n");
     jerasure_print_matrix(identity, k, k, w);
+    free(identity);
   }
+  free(matrix);
+  free(matrix_copy);
+  free(inverse);
   return 0;
 }
 

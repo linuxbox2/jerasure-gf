@@ -105,7 +105,13 @@ int main(int argc, char **argv)
     identity = jerasure_matrix_multiply(inverse, bitmatrix, k*w, k*w, k*w, k*w, 2);
     printf("\nInverse times matrix (should be identity):\n");
     jerasure_print_bitmatrix(identity, k*w, k*w, w);
+    free(identity);
   }
+  /* free data to avoid false positives for leak testing */
+  free(bitmatrix);
+  free(inverse);
+  free(bitmatrix_copy);
+  free(matrix);
   return 0;
 }
 
