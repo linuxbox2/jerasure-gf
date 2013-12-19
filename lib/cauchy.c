@@ -62,8 +62,29 @@ static int PPs[33] = { -1, -1, -1, -1, -1, -1, -1, -1,
 static int NOs[33];
 static int ONEs[33][33];
 
-static int *cbest_0;
-static int *cbest_1;
+#define cbest_0	0
+#define cbest_1	0
+#define cbest_12 0
+#define cbest_13 0
+#define cbest_14 0
+#define cbest_15 0
+#define cbest_16 0
+#define cbest_17 0
+#define cbest_18 0
+#define cbest_19 0
+#define cbest_20 0
+#define cbest_21 0
+#define cbest_22 0
+#define cbest_23 0
+#define cbest_24 0
+#define cbest_25 0
+#define cbest_26 0
+#define cbest_27 0
+#define cbest_28 0
+#define cbest_29 0
+#define cbest_30 0
+#define cbest_31 0
+#define cbest_32 0
 static int cbest_2[3];
 static int cbest_3[7];
 static int cbest_4[15];
@@ -74,9 +95,6 @@ static int cbest_8[255];
 static int cbest_9[511];
 static int cbest_10[1023];
 static int cbest_11[1023];
-static int *cbest_12, *cbest_13, *cbest_14, *cbest_15, *cbest_16, *cbest_17, *cbest_18, *cbest_19, *cbest_20,
-           *cbest_21, *cbest_22, *cbest_23, *cbest_24, *cbest_25, *cbest_26, *cbest_27, *cbest_28, *cbest_29, *cbest_30,
-           *cbest_31, *cbest_32;
 
 static int cbest_max_k[33] = { -1, -1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 1023, -1,
      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -84,8 +102,13 @@ static int cbest_max_k[33] = { -1, -1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 10
 
 static int cbest_init = 0;
 
-static int *cbest_all[33];
-
+static int *cbest_all[33] = {
+	cbest_0, cbest_1, cbest_2, cbest_3, cbest_4, cbest_5, cbest_6, cbest_7,
+	cbest_8, cbest_9, cbest_10, cbest_11, cbest_12, cbest_13, cbest_14,
+	cbest_15, cbest_16, cbest_17, cbest_18, cbest_19, cbest_20, cbest_21,
+	cbest_22, cbest_23, cbest_24, cbest_25, cbest_26, cbest_27, cbest_28,
+	cbest_29, cbest_30, cbest_31, cbest_32
+};
 
 #define talloc(type, num) (type *) malloc(sizeof(type)*(num))
 
@@ -216,17 +239,6 @@ int *cauchy_good_general_coding_matrix(int k, int m, int w)
   if (m == 2 && k <= cbest_max_k[w]) {
     matrix = talloc(int, k*m);
     if (matrix == NULL) return NULL;
-    if (!cbest_init) {
-      cbest_init = 1;
-      cbest_all[0] = cbest_0; cbest_all[1] = cbest_1; cbest_all[2] = cbest_2; cbest_all[3] = cbest_3; cbest_all[4] =
-      cbest_4; cbest_all[5] = cbest_5; cbest_all[6] = cbest_6; cbest_all[7] = cbest_7; cbest_all[8] = cbest_8;
-      cbest_all[9] = cbest_9; cbest_all[10] = cbest_10; cbest_all[11] = cbest_11; cbest_all[12] = cbest_12;
-      cbest_all[13] = cbest_13; cbest_all[14] = cbest_14; cbest_all[15] = cbest_15; cbest_all[16] = cbest_16;
-      cbest_all[17] = cbest_17; cbest_all[18] = cbest_18; cbest_all[19] = cbest_19; cbest_all[20] = cbest_20;
-      cbest_all[21] = cbest_21; cbest_all[22] = cbest_22; cbest_all[23] = cbest_23; cbest_all[24] = cbest_24;
-      cbest_all[25] = cbest_25; cbest_all[26] = cbest_26; cbest_all[27] = cbest_27; cbest_all[28] = cbest_28;
-      cbest_all[29] = cbest_29; cbest_all[30] = cbest_30; cbest_all[31] = cbest_31; cbest_all[32] = (int *) cbest_32;
-    }
     for (i = 0; i < k; i++) {
       matrix[i] = 1;
       matrix[i+k] = cbest_all[w][i];
