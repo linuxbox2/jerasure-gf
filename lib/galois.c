@@ -434,7 +434,7 @@ void galois_w08_region_multiply(char *region,      /* Region to multiply */
   unsigned char *ur1, *ur2, *cp;
   unsigned char prod;
   int i, srow, j;
-  uint32 l, *lp2;
+  gdata_u l, *lp2;
   unsigned char *lp;
   int sol;
 
@@ -464,12 +464,12 @@ void galois_w08_region_multiply(char *region,      /* Region to multiply */
       ur2[i] = prod;
     }
   } else {
-    sol = sizeof(int32);
+    sol = sizeof(gdata);
     lp2 = &l;
     lp = (unsigned char *) lp2;
     for (i = 0; i < nbytes; i += sol) {
       cp = ur2+i;
-      lp2 = (uint32 *) cp;
+      lp2 = (gdata_u *) cp;
       for (j = 0; j < sol; j++) {
         prod = galois_mult_tables[8][srow+ur1[i+j]];
         lp[j] = prod;
@@ -489,7 +489,7 @@ void galois_w16_region_multiply(char *region,      /* Region to multiply */
   unsigned short *ur1, *ur2, *cp;
   int prod;
   int i, log1, j, log2;
-  uint32 l, *lp2, *lptop;
+  gdata_u l, *lp2, *lptop;
   unsigned short *lp;
   int sol;
 
@@ -512,9 +512,9 @@ void galois_w16_region_multiply(char *region,      /* Region to multiply */
 
   if (multby == 0) {
     if (!add) {
-      lp2 = (uint32 *) ur2;
+      lp2 = (gdata_u *) ur2;
       ur2 += nbytes;
-      lptop = (uint32 *) ur2;
+      lptop = (gdata_u *) ur2;
       while (lp2 < lptop) { *lp2 = 0; lp2++; }
     }
     return;
@@ -538,12 +538,12 @@ void galois_w16_region_multiply(char *region,      /* Region to multiply */
       }
     }
   } else {
-    sol = sizeof(int32)/2;
+    sol = sizeof(gdata)/2;
     lp2 = &l;
     lp = (unsigned short *) lp2;
     for (i = 0; i < nbytes; i += sol) {
       cp = ur2+i;
-      lp2 = (uint32 *) cp;
+      lp2 = (gdata_u *) cp;
       for (j = 0; j < sol; j++) {
         if (ur1[i+j] == 0) {
           lp[j] = 0;
@@ -685,7 +685,7 @@ void galois_w32_region_multiply(char *region,      /* Region to multiply */
                                   int add)
 {
   unsigned int *ur1, *ur2, *cp, *ur2top;
-  uint32 *lp2, *lptop;
+  gdata_u *lp2, *lptop;
   int i, j, a, b, accumulator, i8, j8, k;
   int acache[4];
 
@@ -747,17 +747,17 @@ void galois_region_xor(           char *r1,         /* Region 1 */
                                   char *r3,         /* Sum region (r3 = r1 ^ r2) -- can be r1 or r2 */
                                   int nbytes)       /* Number of bytes in region */
 {
-  int32 *l1;
-  int32 *l2;
-  int32 *l3;
-  int32 *ltop;
+  gdata *l1;
+  gdata *l2;
+  gdata *l3;
+  gdata *ltop;
   char *ctop;
   
   ctop = r1 + nbytes;
-  ltop = (int32 *) ctop;
-  l1 = (int32 *) r1;
-  l2 = (int32 *) r2;
-  l3 = (int32 *) r3;
+  ltop = (gdata *) ctop;
+  l1 = (gdata *) r1;
+  l2 = (gdata *) r2;
+  l3 = (gdata *) r3;
  
   while (l1 < ltop) {
     *l3 = ((*l1)  ^ (*l2));

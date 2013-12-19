@@ -1365,8 +1365,8 @@ void jerasure_bitmatrix_encode(int k, int m, int w, int *bitmatrix,
   int i, j, x, y, sptr, pstarted, index;
   char *dptr, *pptr;
 
-  if (packetsize%sizeof(int32) != 0) {
-    fprintf(stderr, "jerasure_bitmatrix_encode - packetsize(%d) %c sizeof(int32) != 0\n", packetsize, '%');
+  if (packetsize%sizeof(gdata) != 0) {
+    fprintf(stderr, "jerasure_bitmatrix_encode - packetsize(%d) %c sizeof(gdata) != 0\n", packetsize, '%');
     exit(1);
   }
   if (size%(packetsize*w) != 0) {

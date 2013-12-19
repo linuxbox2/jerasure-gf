@@ -85,7 +85,7 @@ void galois_region_xor(           char *r1,         /* Region 1 */
                                   int nbytes);      /* Number of bytes in region */
 
 /* These multiply regions in w=8, w=16 and w=32.  They are much faster
-   than calling galois_single_multiply.  The regions must be int32 word aligned. */
+   than calling galois_single_multiply.  The regions must be gdata word aligned. */
 
 void galois_w08_region_multiply(char *region,       /* Region to multiply */
                                   int multby,       /* Number to multiply by */
@@ -108,7 +108,7 @@ void galois_w32_region_multiply(char *region,       /* Region to multiply */
                                                        Otherwise region is overwritten */
                                   int add);         /* If (r2 != NULL && add) the produce is XOR'd with r2 */
 
-typedef unsigned long uint32;
-typedef long int32;
+typedef unsigned long gdata_u;
+typedef long gdata;
 
 #endif
