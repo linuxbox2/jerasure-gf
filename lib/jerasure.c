@@ -937,7 +937,7 @@ static int **jerasure_generate_decoding_schedule(int k, int m, int w, int *bitma
   printf("\n\nReal Decoding Matrix\n\n");
   jerasure_print_bitmatrix(real_decoding_matrix, (ddf+cdf)*w, k*w, w);
   printf("\n"); */
-  if (smart) {
+  if (smart && ddf+cdf) {
     schedule = jerasure_smart_bitmatrix_to_schedule(k, ddf+cdf, w, real_decoding_matrix);
   } else {
     schedule = jerasure_dumb_bitmatrix_to_schedule(k, ddf+cdf, w, real_decoding_matrix);
