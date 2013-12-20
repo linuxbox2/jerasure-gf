@@ -161,7 +161,23 @@ int main(int argc, char **argv)
   } else {
     printf("Generated the identical matrix using cauchy_xy_coding_matrix()\n");
   }
-
+  /* free data to avoid false positives for leak testing */
+  free(m2);
+  free(y);
+  free(x);
+  free(erased);
+  free(erasures);
+  for (i = 0; i < m; i++) {
+    free(coding[i]);
+  }
+  free(coding);
+  for (i = 0; i < k; i++) {
+    free(data[i]);
+  }
+  free(data);
+  jerasure_free_schedule(smart);
+  free(bitmatrix);
+  free(matrix);
 
   return 0;
 }

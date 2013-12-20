@@ -141,6 +141,19 @@ int main(int argc, char **argv)
 
   printf("State of the system after decoding: %.0lf XOR'd bytes\n\n", stats[0]);
   print_data_and_coding_2(k, m, w, sizeof(gdata), data, coding);
+  /* free data to avoid false positives for leak testing */
+  free(erased);
+  free(erasures);
+  for (i = 0; i < m; i++) {
+    free(coding[i]);
+  }
+  free(coding);
+  for (i = 0; i < k; i++) {
+    free(data[i]);
+  }
+  free(data);
+  jerasure_free_schedule(dumb);
+  free(bitmatrix);
   
   return 0;
 }

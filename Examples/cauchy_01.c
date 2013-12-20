@@ -85,6 +85,8 @@ int main(int argc, char **argv)
   printf("Bitmatrix has %d ones\n", no);
   printf("\n");
   jerasure_print_bitmatrix(bitmatrix, w, w, w);
+  /* free data to avoid false positives for leak testing */
+  free(bitmatrix);
 
   return 0;
 }

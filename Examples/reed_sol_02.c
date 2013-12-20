@@ -85,16 +85,19 @@ int main(int argc, char **argv)
   printf("Extended Vandermonde Matrix:\n\n");
   jerasure_print_matrix(matrix, k+m, k, w);
   printf("\n");
+  free(matrix);	/* free for leak testing */
 
   matrix = reed_sol_big_vandermonde_distribution_matrix(k+m, k, w);
   printf("Vandermonde Distribution Matrix:\n\n");
   jerasure_print_matrix(matrix, k+m, k, w);
   printf("\n");
+  free(matrix);	/* free for leak testing */
 
   matrix = reed_sol_vandermonde_coding_matrix(k, m, w);
   printf("Vandermonde Coding Matrix:\n\n");
   jerasure_print_matrix(matrix, m, k, w);
   printf("\n");
+  free(matrix);	/* free for leak testing */
 
   
   return 0;

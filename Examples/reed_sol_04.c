@@ -108,4 +108,7 @@ int main(int argc, char **argv)
        printf("Int %2d: %10u *2 = %10u\n", i, xi[i], yi[i]);
     }
   } 
+  /* free data to avoid false positives for leak testing */
+  free(copy);
+  free(a32);
 }
