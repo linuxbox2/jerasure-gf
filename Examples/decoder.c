@@ -245,12 +245,12 @@ int main (int argc, char **argv) {
 	while (n <= readins) {
 		numerased = 0;
 		/* Open files, check for erasures, read in data/coding */	
-		for (i = 1; i <= k; i++) {
-			sprintf(fname, "Coding/%s_k%0*d%s", cs1, md, i, extension);
+		for (i = 0; i < k; i++) {
+			sprintf(fname, "Coding/%s_k%0*d%s", cs1, md, (i+1), extension);
 			fp = fopen(fname, "rb");
 			if (fp == NULL) {
-				erased[i-1] = 1;
-				erasures[numerased] = i-1;
+				erased[i] = 1;
+				erasures[numerased] = i;
 				numerased++;
 				//printf("%s failed\n", fname);
 			}
@@ -258,22 +258,22 @@ int main (int argc, char **argv) {
 				if (buffersize == origsize) {
 					stat(fname, &status);
 					blocksize = status.st_size;
-					data[i-1] = (char *)malloc(sizeof(char)*blocksize);
-					fread(data[i-1], sizeof(char), blocksize, fp);
+					data[i] = (char *)malloc(sizeof(char)*blocksize);
+					fread(data[i], sizeof(char), blocksize, fp);
 				}
 				else {
 					fseek(fp, blocksize*(n-1), SEEK_SET); 
-					fread(data[i-1], sizeof(char), buffersize/k, fp);
+					fread(data[i], sizeof(char), buffersize/k, fp);
 				}
 				fclose(fp);
 			}
 		}
-		for (i = 1; i <= m; i++) {
-			sprintf(fname, "Coding/%s_m%0*d%s", cs1, md, i, extension);
+		for (i = 0; i < m; i++) {
+			sprintf(fname, "Coding/%s_m%0*d%s", cs1, md, (i+1), extension);
 				fp = fopen(fname, "rb");
 			if (fp == NULL) {
-				erased[k+(i-1)] = 1;
-				erasures[numerased] = k+i-1;
+				erased[k+i] = 1;
+				erasures[numerased] = k+i;
 				numerased++;
 				//printf("%s failed\n", fname);
 			}
@@ -281,12 +281,12 @@ int main (int argc, char **argv) {
 				if (buffersize == origsize) {
 					stat(fname, &status);
 					blocksize = status.st_size;
-					coding[i-1] = (char *)malloc(sizeof(char)*blocksize);
-					fread(coding[i-1], sizeof(char), blocksize, fp);
+					coding[i] = (char *)malloc(sizeof(char)*blocksize);
+					fread(coding[i], sizeof(char), blocksize, fp);
 				}
 				else {
 					fseek(fp, blocksize*(n-1), SEEK_SET);
-					fread(coding[i-1], sizeof(char), blocksize, fp);
+					fread(coding[i], sizeof(char), blocksize, fp);
 				}	
 				fclose(fp);
 			}
@@ -294,7 +294,8 @@ int main (int argc, char **argv) {
 		/* Finish allocating data/coding if needed */
 		if (n == 1) {
 			for (i = 0; i < numerased; i++) {
-				if (erasures[i] < k) {
+				if (buffersize != origsize) {
+				} else if (erasures[i] < k) {
 					data[erasures[i]] = (char *)malloc(sizeof(char)*blocksize);
 				}
 				else {
@@ -366,10 +367,22 @@ int main (int argc, char **argv) {
 	free(cs1);
 	free(extension);
 	free(fname);
+	for (i = 0; i < k; i++) {
+		free(data[i]);
+	}
+	for (i = 0; i < m; i++) {
+		free(coding[i]);
+	}
 	free(data);
 	free(coding);
 	free(erasures);
 	free(erased);
+
+	free(temp);
+	free(c_tech);
+
+	if (bitmatrix)
+		free(bitmatrix);
 	
 	/* Stop timing and print time */
 	gettimeofday(&t2, &tz);

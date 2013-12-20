@@ -416,7 +416,7 @@ int main (int argc, char **argv) {
         }
 	
 	/* Allocate for full file name */
-	fname = (char*)malloc(sizeof(char)*(strlen(argv[1])+10));
+	fname = (char*)malloc(sizeof(char)*(strlen(argv[1])+12));
 	sprintf(temp, "%d", k);
 	md = strlen(temp);
 	
@@ -480,7 +480,11 @@ int main (int argc, char **argv) {
 		/* Check if padding is needed, if so, add appropriate 
 		   number of zeros */
 		if (total < size && total+buffersize <= size) {
-			total += jfread(block, sizeof(char), buffersize, fp);
+			extra = jfread(block, sizeof(char), buffersize, fp);
+			for (i = extra; i < blocksize*k; i++) {
+				block[i] = '0';
+			}
+			total += extra;
 		}
 		else if (total < size && total+buffersize > size) {
 			extra = jfread(block, sizeof(char), buffersize, fp);
@@ -530,34 +534,34 @@ int main (int argc, char **argv) {
 		gettimeofday(&t4, &tz);
 	
 		/* Write data and encoded data to k+m files */
-		for	(i = 1; i <= k; i++) {
+		for	(i = 0; i < k; i++) {
 			if (fp == NULL) {
-				memset(data[i-1], 0, blocksize);
+				memset(data[i], 0, blocksize);
  			} else {
-				sprintf(fname, "Coding/%s_k%0*d%s", s1, md, i, extension);
+				sprintf(fname, "Coding/%s_k%0*d%s", s1, md, (i+1), extension);
 				if (n == 1) {
 					fp2 = fopen(fname, "wb");
 				}
 				else {
 					fp2 = fopen(fname, "ab");
 				}
-				fwrite(data[i-1], sizeof(char), blocksize, fp2);
+				fwrite(data[i], sizeof(char), blocksize, fp2);
 				fclose(fp2);
 			}
 			
 		}
-		for	(i = 1; i <= m; i++) {
+		for	(i = 0; i < m; i++) {
 			if (fp == NULL) {
-				memset(data[i-1], 0, blocksize);
+				memset(data[i], 0, blocksize);
  			} else {
-				sprintf(fname, "Coding/%s_m%0*d%s", s1, md, i, extension);
+				sprintf(fname, "Coding/%s_m%0*d%s", s1, md, (i+1), extension);
 				if (n == 1) {
 					fp2 = fopen(fname, "wb");
 				}
 				else {
 					fp2 = fopen(fname, "ab");
 				}
-				fwrite(coding[i-1], sizeof(char), blocksize, fp2);
+				fwrite(coding[i], sizeof(char), blocksize, fp2);
 				fclose(fp2);
 			}
 		}
@@ -590,6 +594,20 @@ int main (int argc, char **argv) {
 	free(s1);
 	free(fname);
 	free(block);
+	free(extension);
+
+	for (i = 0; i < m; i++) {
+		free(coding[i]);
+	}
+	free(coding);
+	free(data);
+
+	if (fp)
+		fclose(fp);
+	if (schedule)
+		jerasure_free_schedule(schedule);
+	if (bitmatrix)
+		free(bitmatrix);
 	
 	/* Calculate rate in MB/sec and print */
 	gettimeofday(&t2, &tz);
