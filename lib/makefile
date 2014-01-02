@@ -28,7 +28,9 @@
 # $Date: 2007/09/25 15:12:20 $
 
 CC = gcc  
-CFLAGS = -O3 -I$(HOME)/include -g
+#OPTS=-O3
+OPTS=-g
+CFLAGS = -I$(HOME)/include $(OPTS)
 
 ALL = libjerasure.a 
 

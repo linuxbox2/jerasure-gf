@@ -44,7 +44,9 @@
 
 
 CC = gcc  
-CFLAGS = -O2 -I../lib -g
+#OPTS=-O2
+OPTS=-g
+CFLAGS = -I../lib $(OPTS)
 
 ALL =	jerasure_01 \
         jerasure_02 \
