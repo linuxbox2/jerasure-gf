@@ -67,6 +67,7 @@ ALL =	jerasure_01 \
         liberation_01 \
 		encoder \
 		decoder \
+		test1 \
 
 all: $(ALL)
 
@@ -151,6 +152,9 @@ cauchy_04: cauchy_04.o fillrand.o pdc2.o $(L)
 liberation_01.o: $(H4)
 liberation_01: liberation_01.o fillrand.o pdc2.o $(L)
 	$(CC) $(CFLAGS) -o liberation_01 liberation_01.o fillrand.o pdc2.o $(L)
+
+test1: test1.o
+	$(CC) $(CFLAGS) -o test1 test1.o rc4.o shs_n.o pdc1.o pdc2.o $(L)
 
 encoder.o: $(H5)
 encoder: encoder.o $(L) $(L)
