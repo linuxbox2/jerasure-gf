@@ -16,6 +16,20 @@ fillrand2(rc4_key_schedule *ks, char *cp, int s)
 	rc4(ks, s, cp, cp);
 }
 
+LONG
+vector_check_sum(char **data, int n, int w)
+{
+	int i;
+	SHS_INFO si[1];
+
+	shsInit(si);
+	for (i = 0; i < n; ++i) {
+		shsUpdate(si, data[i], w);
+	}
+	shsFinal(si);
+	return si->digest[0];
+}
+
 /*
  * jerasure_01 3 15 8
  * jerasure_01 27 12 16
@@ -1500,7 +1514,7 @@ int test4()
 		inverse = talloc(int, tp->k*tp->w*tp->k*tp->w);
 
 		for (i = 0; i < tp->k; ++i) {
-			for (j = 0; j < tp->k; j++) {
+			for (j = 0; j < tp->k; ++j) {
 				n = i ^ ((1 << tp->w)-1-j);
 				matrix[i*tp->k+j] = (n == 0) ? 0 : galois_single_divide(1, n, tp->w);
 			}
@@ -1621,7 +1635,7 @@ int test5()
 		matrix = talloc(int, tp->m*tp->k);
 
 		for (i = 0; i < tp->m; ++i) {
-			for (j = 0; j < tp->k; j++) {
+			for (j = 0; j < tp->k; ++j) {
 				matrix[i*tp->k+j] = galois_single_divide(1, i ^ (tp->m + j), tp->w);
 			}
 		}
@@ -1819,7 +1833,7 @@ int test6()
 
 		matrix = talloc(int, tp->m*tp->k);
 		for (i = 0; i < tp->m; ++i) {
-			for (j = 0; j < tp->k; j++) {
+			for (j = 0; j < tp->k; ++j) {
 				matrix[i*tp->k+j] = galois_single_divide(1, i ^ (tp->m + j), tp->w);
 			}
 		}
@@ -1884,11 +1898,7 @@ int test6()
 			printf ("%s: %s: DATA not right?\n",
 				label, key);
 		}
-		shsInit(si);
-		for (i = 0; i < tp->m; ++i) {
-			shsUpdate(si, coding[i], tp->ps*tp->w);
-		}
-		shsFinal(si);
+		si->digest[0] = vector_check_sum(coding, tp->m, tp->ps*tp->w);
 		if (si->digest[0] != coding_cksum) {
 			failed = 1;
 			printf ("%s: %s: CODING not right?\n",
@@ -1965,6 +1975,177 @@ Dm:
 	return errors;
 }
 
+int test7_dist1[] = {
+1,1,1, 0,0,1, 1,0,1,
+1,0,0, 1,0,1, 1,1,1,
+1,1,0, 0,1,0, 0,1,1,
+
+0,0,1, 1,1,1, 0,1,0,
+1,0,1, 1,0,0, 0,1,1,
+0,1,0, 1,1,0, 1,0,1,
+
+1,0,1, 0,1,0, 1,1,1,
+1,1,1, 0,1,1, 1,0,0,
+0,1,1, 1,0,1, 1,1,0,
+
+0,1,0, 1,0,1, 0,0,1,
+0,1,1, 1,1,1, 1,0,1,
+1,0,1, 0,1,1, 0,1,0,
+};
+
+/*
+jerasure_07 3 4 3
+*/
+
+struct test7 {
+	int w, k,m,*dist;
+} test7_data[] = {
+	{3,3,4,test7_dist1},
+{0}};
+
+int test7()
+{
+	struct test7 *tp;
+	int *matrix, *bitmatrix;
+	int *identity;
+	int i, j;
+	int failed;
+	int errors = 0;
+	gdata l;
+	char label[80];
+	char key[80];
+	unsigned foo;
+	char **data, **coding, **ptrs;
+	int **smart, **dumb;
+//	double stats[3];
+	rc4_key_schedule ks[1];
+	SHS_INFO si[1];
+	int *erasures, *erased;
+	LONG data_cksum, coding_cksum, sum;
+
+	for (tp = test7_data; tp->w; ++tp) {
+		failed = 0;
+		sprintf (label, "test7 case %d", 1+tp-test7_data);
+		sprintf (key, "jerasure_07 %d %d %d", tp->k, tp->m, tp->w);
+		rc4_set_key(ks, strlen(key), key, 0);
+
+		matrix = talloc(int, tp->m*tp->k);
+		for (i = 0; i < tp->m; ++i) {
+			for (j = 0; j < tp->k; ++j) {
+				matrix[i*tp->k+j] = galois_single_divide(1, i ^ (tp->m + j), tp->w);
+			}
+		}
+		bitmatrix = jerasure_matrix_to_bitmatrix(tp->k, tp->m, tp->w, matrix);
+		if (memcmp(bitmatrix, tp->dist, sizeof *bitmatrix*tp->w*tp->w*tp->m*tp->k)) {
+			failed = 1;
+			printf ("%s: %s: matrix_to_bitmatrix failed?\n",
+				label, key);
+			printf ("%s: EXPECTED\n", label);
+			jerasure_print_bitmatrix(tp->dist, tp->w*tp->m, tp->w*tp->k, tp->w);
+			printf ("%s: GOT\n", label);
+			jerasure_print_bitmatrix(bitmatrix, tp->w*tp->m, tp->w*tp->k, tp->w);
+		}
+
+		dumb = jerasure_dumb_bitmatrix_to_schedule(tp->k, tp->m, tp->w, bitmatrix);
+		smart = jerasure_smart_bitmatrix_to_schedule(tp->k, tp->m, tp->w, bitmatrix);
+
+		data = talloc(char *, tp->k);
+		shsInit(si);
+		for (i = 0; i < tp->k; ++i) {
+			data[i] = talloc(char, sizeof(gdata)*tp->w);
+			fillrand2(ks, data[i], sizeof(gdata)*tp->w);
+			shsUpdate(si, data[i], sizeof(gdata)*tp->w);
+		}
+		shsFinal(si);
+		data_cksum = si->digest[0];
+		coding = talloc(char *, tp->m);
+		for (i = 0; i < tp->m; ++i) {
+			coding[i] = talloc(char, sizeof(gdata)*tp->w);
+		}
+		jerasure_schedule_encode(tp->k, tp->m, tp->w,
+			dumb, data, coding,
+			tp->w*sizeof(gdata), sizeof(gdata));
+//		jerasure_get_stats(stats);
+
+		coding_cksum = vector_check_sum(coding, tp->m, sizeof(gdata)*tp->w);
+
+		jerasure_schedule_encode(tp->k, tp->m, tp->w,
+			smart, data, coding,
+			tp->w*sizeof(gdata), sizeof(gdata));
+//		jerasure_get_stats(stats);
+
+		shsInit(si);
+		for (i = 0; i < tp->m; ++i) {
+			shsUpdate(si, coding[i], sizeof(gdata)*tp->w);
+		}
+		shsFinal(si);
+		if (si->digest[0] != coding_cksum) {
+			failed = 1;
+			printf ("%s: %s: dumb and smart coding don't match?\n",
+				label, key);
+		}
+
+		erasures = talloc(int, (tp->m+1));
+		erased = talloc(int, (tp->k+tp->m));
+		memset(erased, 0, sizeof *erased * (tp->k+tp->m));
+		for (i = 0; i < tp->m; ) {
+			foo = 0;
+			rc4(ks, sizeof foo, (unsigned char *)&foo, (unsigned char *)&foo);
+			foo %= (tp->k+tp->m);
+			erasures[i] = foo;
+			if (erased[erasures[i]]) continue;
+			erased[erasures[i]] = 1;
+			memset((erasures[i] < tp->k) ?
+				data[erasures[i]] : coding[erasures[i]-tp->k], 0, sizeof(gdata)*tp->w);
+			++i;
+		}
+		erasures[i] = -1;
+
+		jerasure_schedule_decode_lazy(tp->k, tp->m, tp->w, bitmatrix,
+			erasures, data, coding, tp->w*sizeof(gdata), sizeof(gdata), 1);
+//		jerasure_get_stats(stats);
+
+		ptrs = talloc(char *, (tp->k+tp->m));
+		for (i = 0; i < tp->k; ++i) ptrs[i] = data[i];
+		for (i = 0; i < tp->m; ++i) ptrs[tp->k+i] = coding[i];
+		jerasure_do_scheduled_operations(ptrs, smart, sizeof(gdata));
+		sum = vector_check_sum(data, tp->k, sizeof(gdata)*tp->w);
+		if (sum != data_cksum) {
+			failed = 1;
+			printf ("%s: %s: DATA not right?\n",
+				label, key);
+		}
+		sum = vector_check_sum(coding, tp->m, sizeof(gdata)*tp->w);
+		if (sum != coding_cksum) {
+			failed = 1;
+			printf ("%s: %s: CODING not right?\n",
+				label, key);
+		}
+		if (failed) {
+			printf ("Data and coding after replacing the coding device\n");
+			print_data_and_coding_2(tp->k, tp->m, tp->w, sizeof(gdata), data, coding);
+		}
+
+		/* free data to avoid false positives for leak testing */
+		free(ptrs);
+		free(erased);
+		free(erasures);
+		for (i = 0; i < tp->m; ++i) {
+			free(coding[i]);
+		}
+		free(coding);
+		for (i = 0; i < tp->k; ++i) {
+			free(data[i]);
+		}
+		free(data);
+		jerasure_free_schedule(smart);
+		jerasure_free_schedule(dumb);
+		free(bitmatrix);
+		free(matrix);
+		errors += failed;
+	}
+	return errors;
+}
 
 int main(int ac, char **av)
 {
@@ -1974,6 +2155,7 @@ int main(int ac, char **av)
 	errors += test4();
 	errors += test5();
 	errors += test6();
+	errors += test7();
 	if (!errors) {
 		fprintf(stderr, "all tests passed\n");
 	}
