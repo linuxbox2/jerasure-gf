@@ -103,7 +103,7 @@ int main(int argc, char **argv)
   } else if (w == 32) {
     xi = (unsigned int *) copy;
     yi = (unsigned int *) a32;
-    reed_sol_galois_w16_region_multby_2((char *) a32, sizeof(int)*4);
+    reed_sol_galois_w32_region_multby_2((char *) a32, sizeof(int)*4);
     for (i = 0; i < 4*sizeof(int)/sizeof(int); i++) {
        printf("Int %2d: %10u *2 = %10u\n", i, xi[i], yi[i]);
     }
