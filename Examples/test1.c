@@ -1529,9 +1529,9 @@ int test4()
 //		printf("\nInvertible: %s\n", (i == 1) ? "Yes" : "No");
 		if (i != (tp->out != 0)) {
 			++errors;
-			printf ("test3 case %d: jerasure_04 %d %d\n", 1+tp-test4_data,
+			printf ("test4 case %d: jerasure_04 %d %d\n", 1+tp-test4_data,
 				tp->k, tp->w);
-			printf ("test3 case %d: seems to be %sinvertible but expected %sinvertible\n",
+			printf ("test4 case %d: seems to be %sinvertible but expected %sinvertible\n",
 				1+tp-test4_data,
 				i ? "" : "not ",
 				tp->out ? "not " : "");
@@ -1540,16 +1540,16 @@ int test4()
 			i = jerasure_invert_bitmatrix(bitmatrix_copy, inverse, tp->k*tp->w);
 			if (memcmp(inverse, tp->out, sizeof *bitmatrix * (tp->k*tp->k*tp->w*tp->w))) {
 				++errors;
-			printf ("test3 case %d: jerasure_04 %d %d\n",
+			printf ("test4 case %d: jerasure_04 %d %d\n",
 				1+tp-test4_data,
 				tp->k, tp->w);
-				printf ("test3 case %d EXPECTED\n", 1+tp-test4_data);
+				printf ("test4 case %d EXPECTED\n", 1+tp-test4_data);
 					
 				jerasure_print_bitmatrix(tp->out, tp->k*tp->w, tp->k*tp->w, tp->w);
-				printf ("test3 case %d GOT\n", 1+tp-test4_data);
+				printf ("test4 case %d GOT\n", 1+tp-test4_data);
 				jerasure_print_bitmatrix(inverse, tp->k*tp->w, tp->k*tp->w, tp->w);
 				identity = jerasure_matrix_multiply(inverse, bitmatrix, tp->k*tp->w, tp->k*tp->w, tp->k*tp->w, tp->k*tp->w, 2);
-				printf("\ntest3 case %d Inverse times matrix (should be identity):\n", 1+tp-test4_data);
+				printf("\ntest4 case %d Inverse times matrix (should be identity):\n", 1+tp-test4_data);
 				jerasure_print_bitmatrix(identity, tp->k*tp->w, tp->k*tp->w, tp->w);
 				free(identity);
 			}
@@ -2360,7 +2360,7 @@ test9()
 
 	for (tp = test9_data; tp->w; ++tp) {
 		failed = 0;
-		sprintf (label, "test8 case %d", 1+tp-test9_data);
+		sprintf (label, "test9 case %d", 1+tp-test9_data);
 		sprintf (key, "reed_sol_01 %d %d %d",
 			tp->k, tp->m, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
@@ -2501,7 +2501,7 @@ test10()
 
 	for (tp = test10_data; tp->w; ++tp) {
 		failed = 0;
-		sprintf (label, "test8 case %d", 1+tp-test10_data);
+		sprintf (label, "test10 case %d", 1+tp-test10_data);
 		sprintf (key, "reed_sol_02 %d %d %d",
 			tp->k, tp->m, tp->w);
 
@@ -2581,12 +2581,11 @@ test11()
 
 	for (tp = test11_data; tp->w; ++tp) {
 		failed = 0;
-		sprintf (label, "test8 case %d", 1+tp-test11_data);
+		sprintf (label, "test11 case %d", 1+tp-test11_data);
 		sprintf (key, "reed_sol_03 %d %d %d",
 			tp->k, tp->m, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
-		matrix = reed_sol_vandermonde_coding_matrix(tp->k, tp->m, tp->w);
 		matrix = reed_sol_r6_coding_matrix(tp->k, tp->w);
 
 		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->m*tp->k))) {
@@ -2671,6 +2670,112 @@ Dm:
 	return errors;
 }
 
+/*
+reed_sol_04 16
+*/
+
+struct test12 {
+	int w;
+} test12_data[] = {
+	{8}, {16}, {32},
+{0}};
+
+test12()
+{
+	struct test12 *tp;
+	unsigned char *x, *y, *rb;
+	unsigned short *xs, *ys, *rs;
+	unsigned int *xi, *yi, *ri;
+	int *a32, *copy, *reversed;
+	int i;
+	int failed;
+	int errors = 0;
+	char label[80];
+	char key[80];
+	unsigned foo;
+	rc4_key_schedule ks[1];
+
+	for (tp = test12_data; tp->w; ++tp) {
+		failed = 0;
+		sprintf (label, "test12 case %d", 1+tp-test12_data);
+		sprintf (key, "reed_sol_04 %d", tp->w);
+		rc4_set_key(ks, strlen(key), key, 0);
+
+		a32 = talloc(int, 4);
+		copy = talloc(int, 4);
+		reversed = talloc(int, 4);
+		fillrand2(ks,(char*)a32, 4*sizeof(int));
+		memcpy(copy, a32, sizeof(int)*4);
+
+		switch (tp->w) {
+		case 8:
+			x = (unsigned char *) copy;
+			y = (unsigned char *) a32;
+			rb = (unsigned char *) reversed;
+			reed_sol_galois_w08_region_multby_2((char *) a32, sizeof(int)*4);
+			for (i = 0; i < 4*sizeof(int)/sizeof(char); i++) {
+				rb[i] = galois_single_divide(y[i], 2, tp->w);
+			}
+			if (memcmp(copy, reversed, sizeof *reversed*4)) {
+				failed = 1;
+			} else {
+				break;
+			}
+			for (i = 0; i < 4*sizeof(int)/sizeof(char); i++) {
+				printf("Char %2d: %3u *2 = %3u ( /2= %3u )\n", i, x[i], y[i], rb[i]);
+			}
+			break;
+		case 16:
+			xs = (unsigned short *) copy;
+			ys = (unsigned short *) a32;
+			rs = (unsigned short *) reversed;
+			reed_sol_galois_w16_region_multby_2((char *) a32, sizeof(int)*4);
+			for (i = 0; i < 4*sizeof(int)/sizeof(short); i++) {
+				rs[i] = galois_single_divide(ys[i], 2, tp->w);
+			}
+			if (memcmp(copy, reversed, sizeof *reversed*4)) {
+				failed = 1;
+			} else {
+				break;
+			}
+			for (i = 0; i < 4*sizeof(int)/sizeof(short); i++) {
+				printf("Short %2d: %5u *2 = %5u ( /2= %5u )\n", i, xs[i], ys[i], rs[i]);
+			}
+			break;
+		case 32:
+			xi = (unsigned int *) copy;
+			yi = (unsigned int *) a32;
+			ri = (unsigned int *) reversed;
+			reed_sol_galois_w32_region_multby_2((char *) a32, sizeof(int)*4);
+			for (i = 0; i < 4*sizeof(int)/sizeof(int); i++) {
+				ri[i] = galois_single_divide(yi[i], 2, tp->w);
+			}
+			if (memcmp(copy, reversed, sizeof *reversed*4)) {
+				failed = 1;
+			} else {
+				break;
+			}
+			for (i = 0; i < 4*sizeof(int)/sizeof(int); i++) {
+				printf("Int %2d: %10u *2 = %10u ( /2= %10u )\n", i, xi[i], yi[i], ri[i]);
+			}
+			break;
+		default:
+			printf ("?? w=%d\n", tp->w);
+			failed = 1;
+		}
+		/* free data to avoid false positives for leak testing */
+		free(reversed);
+		free(copy);
+		free(a32);
+
+		if (failed)
+			printf ("%s failed: %s\n", label, key);
+
+		errors += failed;
+	}
+	return errors;
+}
+
 int main(int ac, char **av)
 {
 	int errors = 0;
@@ -2684,6 +2789,7 @@ int main(int ac, char **av)
 	errors += test9();
 	errors += test10();
 	errors += test11();
+	errors += test12();
 	if (!errors) {
 		fprintf(stderr, "all tests passed\n");
 	}
