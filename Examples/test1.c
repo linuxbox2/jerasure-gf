@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "jerasure.h"
+#include "reed_sol.h"
 #include "rc4.h"
 #include "shs.h"
 
@@ -1625,7 +1626,7 @@ int test5()
 	SHS_INFO si[1];
 	int *erasures, *erased;
 	int *decoding_matrix, *dm_ids;
-	LONG data_cksum, coding_cksum;
+	LONG data_cksum, coding_cksum, sum;
 
 	for (tp = test5_data; tp->w; ++tp) {
 		failed = 0;
@@ -1687,22 +1688,14 @@ int test5()
 				label, key);
 			goto Dm;
 		}
-		shsInit(si);
-		for (i = 0; i < tp->k; ++i) {
-			shsUpdate(si, data[i], tp->s);
-		}
-		shsFinal(si);
-		if (si->digest[0] != data_cksum) {
+		sum = vector_check_sum(data, tp->k, tp->s);
+		if (sum != data_cksum) {
 			failed = 1;
 			printf ("%s: %s: DATA not right?\n",
 				label, key);
 		}
-		shsInit(si);
-		for (i = 0; i < tp->m; ++i) {
-			shsUpdate(si, coding[i], tp->s);
-		}
-		shsFinal(si);
-		if (si->digest[0] != coding_cksum) {
+		sum = vector_check_sum(coding, tp->m, tp->s);
+		if (sum != coding_cksum) {
 			failed = 1;
 			printf ("%s: %s: CODING not right?\n",
 				label, key);
@@ -2243,7 +2236,7 @@ int test8()
 		erasures[0] = tp->k;
 		erasures[1] = tp->k+1;
 		erasures[2] = -1;		// ?? 2=m */
-		for (j = 0; j < tp->m; j++) memset(coding[j], 0, sizeof(gdata)*tp->w);
+		for (j = 0; j < tp->m; ++j) memset(coding[j], 0, sizeof(gdata)*tp->w);
 
 		jerasure_schedule_decode_cache(tp->k, tp->m, tp->w,
 			cache, erasures, data, coding,
@@ -2329,6 +2322,133 @@ int test8()
 	return errors;
 }
 
+int test9_out1[] = {
+1,   1,   1,   1,   1,   1,   1,
+1, 199, 210, 240, 105, 121, 248,
+1,  70,  91, 245,  56, 142, 167,
+1, 170, 114,  42,  87,  78, 231,
+1,  38, 236,  53, 233, 175,  65,
+1,  64, 174, 232,  52, 237,  39,
+1, 187, 104, 210, 211, 105, 186,
+};
+
+/*
+reed_sol_01 7 7 8
+*/
+
+struct test9 {
+	int w, k,m,*out;
+} test9_data[] = {
+	{8,7,7,test9_out1},
+{0}};
+
+test9()
+{
+	struct test9 *tp;
+	int *matrix;
+	int i, j;
+	int failed;
+	int errors = 0;
+	char label[80];
+	char key[80];
+	unsigned foo;
+	char **data, **coding;
+	rc4_key_schedule ks[1];
+	int *erasures, *erased;
+	int *decoding_matrix, *dm_ids;
+	LONG data_cksum, coding_cksum, sum;
+
+	for (tp = test9_data; tp->w; ++tp) {
+		failed = 0;
+		sprintf (label, "test8 case %d", 1+tp-test9_data);
+		sprintf (key, "reed_sol_01 %d %d %d",
+			tp->k, tp->m, tp->w);
+		rc4_set_key(ks, strlen(key), key, 0);
+
+		matrix = reed_sol_vandermonde_coding_matrix(tp->k, tp->m, tp->w);
+
+		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->m*tp->k))) {
+			failed = 1;
+			printf ("%s EXPECTED\n", label);
+			jerasure_print_matrix(tp->out, tp->m, tp->k, tp->w);
+			printf ("%s GOT\n", label);
+			jerasure_print_matrix(matrix, tp->m, tp->k, tp->w);
+		}
+
+		data = talloc(char *, tp->k);
+		for (i = 0; i < tp->k; ++i) {
+			data[i] = talloc(char, sizeof(gdata));
+			fillrand2(ks, data[i], sizeof(gdata));
+		}
+		data_cksum = vector_check_sum(data, tp->k, sizeof(gdata));
+
+		coding = talloc(char *, tp->m);
+		for (i = 0; i < tp->m; ++i) {
+			coding[i] = talloc(char, sizeof(gdata));
+		}
+
+		jerasure_matrix_encode(tp->k, tp->m, tp->w, matrix, data, coding, sizeof(gdata));
+		coding_cksum = vector_check_sum(coding, tp->m, sizeof(gdata));
+
+		erasures = talloc(int, (tp->m+1));
+		erased = talloc(int, (tp->k+tp->m));
+		for (i = 0; i < tp->m+tp->k; ++i) erased[i] = 0;
+		for (i = 0; i < tp->m; ) {
+			foo = 0;
+			rc4(ks, sizeof foo, (unsigned char *)&foo, (unsigned char *)&foo);
+			foo %= (tp->k+tp->m);
+			erasures[i] = foo;
+			if (erased[erasures[i]] == 0) {
+				erased[erasures[i]] = 1;
+				memset((erasures[i] < tp->k) ? data[erasures[i]] : coding[erasures[i]-tp->k], 0, sizeof(gdata));
+				++i;
+			}
+		}
+		erasures[i] = -1;
+
+		i = jerasure_matrix_decode(tp->k, tp->m, tp->w, matrix, 1, erasures, data, coding, sizeof(gdata));
+		if (i < 0) {
+			failed = 1;
+			printf ("%s: %s: matrix_decode failed?\n",
+				label, key);
+			goto Dm;
+		}
+
+		sum = vector_check_sum(data, tp->k, sizeof(gdata));
+		if (sum != data_cksum) {
+			failed = 1;
+			printf ("%s: %s: DATA not right?\n",
+				label, key);
+		}
+		sum = vector_check_sum(coding, tp->m, sizeof(gdata));
+		if (sum != coding_cksum) {
+			failed = 1;
+			printf ("%s: %s: CODING not right?\n",
+				label, key);
+		}
+Dm:
+		if (failed) {
+			printf ("%s: %s\n", label, key);
+			printf ("Data and coding\n");
+			print_data_and_coding_1(tp->k, tp->m, tp->w, sizeof(gdata), data, coding);
+		}
+		/* free data to avoid false positives for leak testing */
+		free(erased);
+		free(erasures);
+		for (i = 0; i < tp->m; ++i) {
+			free(coding[i]);
+		}
+		free(coding);
+		for (i = 0; i < tp->k; ++i) {
+			free(data[i]);
+		}
+		free(data);
+		free(matrix);
+		errors += failed;
+	}
+	return errors;
+}
+
 int main(int ac, char **av)
 {
 	int errors = 0;
@@ -2339,6 +2459,7 @@ int main(int ac, char **av)
 	errors += test6();
 	errors += test7();
 	errors += test8();
+	errors += test9();
 	if (!errors) {
 		fprintf(stderr, "all tests passed\n");
 	}
