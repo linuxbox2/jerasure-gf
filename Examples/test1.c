@@ -7,6 +7,7 @@
 #include "jerasure.h"
 #include "reed_sol.h"
 #include "cauchy.h"
+#include "liberation.h"
 #include "rc4.h"
 #include "shs.h"
 
@@ -3345,6 +3346,153 @@ test16()
 	return errors;
 }
 
+int test17_mat1[] = {
+1,0,0, 1,0,0, 1,0,0,
+0,1,0, 0,1,0, 0,1,0,
+0,0,1, 0,0,1, 0,0,1,
+1,0,0, 0,1,0, 0,0,1,
+0,1,0, 0,1,1, 1,0,0,
+0,0,1, 1,0,0, 1,1,0,
+};
+
+/*
+liberation_01 3 3 3
+liberation_01 10 2 8
+*/
+
+struct test17 {
+	int w,k,m,no,*mat;
+} test17_data[] = {
+	{3,3,2,34,test17_mat1},
+{0}};
+
+int
+test17()
+{
+	struct test17 *tp;
+	int i, j;
+	int *bitmatrix;
+	char **data, **coding, **ptrs;
+	int **dumb, **smart;
+	int no;
+	int *erasures, *erased;
+//	double stats[3];
+	int failed;
+	int errors = 0;
+	char label[80];
+	char key[80];
+	unsigned foo;
+	rc4_key_schedule ks[1];
+	LONG data_cksum, coding_cksum, sum;
+
+	for (tp = test17_data; tp->w; ++tp) {
+		failed = 0;
+		sprintf (label, "test17 case %d", 1+tp-test17_data);
+		if (tp->m == 2)
+			sprintf (key, "liberation_01 %d %d", tp->k, tp->w);
+		else
+			sprintf (key, "liberation_01a %d %d", tp->k, tp->m, tp->w);
+		rc4_set_key(ks, strlen(key), key, 0);
+
+		bitmatrix = liberation_coding_bitmatrix(tp->k, tp->w);
+		if (bitmatrix == NULL) {
+			failed |= 1;
+			printf("%s: couldn't make coding matrix", label);
+			goto Fl;
+		}
+		if (memcmp(bitmatrix, tp->mat, sizeof(int)*tp->m*tp->k*tp->w*tp->w)) {
+			failed |= 2;
+			printf("%s: matrix does not match expected\n", label);
+		}
+		if (failed & 2) {
+			printf ("%s: got\n", label);
+			jerasure_print_bitmatrix(bitmatrix, tp->w*tp->m, tp->w*tp->k, tp->w);
+			printf ("%s: expected\n", label);
+			jerasure_print_bitmatrix(tp->mat, tp->w*tp->m, tp->w*tp->k, tp->w);
+		}
+
+		dumb = jerasure_dumb_bitmatrix_to_schedule(tp->k,
+			tp->m, tp->w, bitmatrix);
+
+		data = talloc(char *, tp->k);
+		for (i = 0; i < tp->k; i++) {
+			data[i] = talloc(char, sizeof(gdata)*tp->w);
+			fillrand2(ks, data[i], sizeof(gdata)*tp->w);
+		}
+		data_cksum = vector_check_sum(data, tp->k, sizeof(gdata));
+
+		coding = talloc(char *, tp->m);
+		for (i = 0; i < tp->m; i++) {
+			coding[i] = talloc(char, sizeof(gdata)*tp->w);
+		}
+
+		jerasure_schedule_encode(tp->k, tp->m, tp->w,
+			dumb, data, coding, tp->w*sizeof(gdata), sizeof(gdata));
+//		jerasure_get_stats(stats);
+		coding_cksum = vector_check_sum(coding, tp->m, sizeof(gdata));
+
+		erasures = talloc(int, (tp->m+1));
+		erased = talloc(int, (tp->k+tp->m));
+		for (i = 0; i < tp->m+tp->k; i++) erased[i] = 0;
+		for (i = 0; i < tp->m; ) {
+			foo = 0;
+			rc4(ks, sizeof foo, (unsigned char *)&foo, (unsigned char *)&foo);
+			foo %= (tp->k+tp->m);
+			erasures[i] = foo;
+			if (erased[erasures[i]] == 0) {
+				erased[erasures[i]] = 1;
+				memset((erasures[i] < tp->k) ? data[erasures[i]] : coding[erasures[i]-tp->k], 0, sizeof(gdata)*tp->w);
+				i++;
+			}
+		}
+		erasures[i] = -1;
+
+		jerasure_schedule_decode_lazy(tp->k, tp->m, tp->w,
+			bitmatrix, erasures, data, coding,
+			tp->w*sizeof(gdata), sizeof(gdata), 1);
+//		jerasure_get_stats(stats);
+
+		sum = vector_check_sum(data, tp->k, sizeof(gdata));
+		if (sum != data_cksum) {
+			failed |= 4;
+			printf ("%s: %s: DATA not right?\n",
+				label, key);
+		}
+		sum = vector_check_sum(coding, tp->m, sizeof(gdata));
+		if (sum != coding_cksum) {
+			failed |= 4;
+			printf ("%s: %s: CODING not right?\n",
+				label, key);
+		}
+
+		if (failed & 4) {
+			printf("%s: state of the system\n", label);
+			print_data_and_coding_2(tp->k, tp->m, tp->w,
+				sizeof(gdata), data, coding);
+		}
+		/* free data to avoid false positives for leak testing */
+		free(erased);
+		free(erasures);
+		for (i = 0; i < tp->m; i++) {
+			free(coding[i]);
+		}
+		free(coding);
+		for (i = 0; i < tp->k; i++) {
+			free(data[i]);
+		}
+		free(data);
+		jerasure_free_schedule(dumb);
+		free(bitmatrix);
+
+	Fl:
+		if (failed)
+			printf ("%s failed: %s\n", label, key);
+
+		errors += !!failed;
+	}
+	return errors;
+}
+
 int main(int ac, char **av)
 {
 	int errors = 0;
@@ -3363,6 +3511,7 @@ int main(int ac, char **av)
 	errors += test14();
 	errors += test15();
 	errors += test16();
+	errors += test17();
 	if (!errors) {
 		fprintf(stderr, "all tests passed\n");
 	} else {
