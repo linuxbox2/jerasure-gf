@@ -6,6 +6,7 @@
 #include <string.h>
 #include "jerasure.h"
 #include "reed_sol.h"
+#include "cauchy.h"
 #include "rc4.h"
 #include "shs.h"
 
@@ -2818,6 +2819,7 @@ test13()
 		failed = 0;
 		sprintf (label, "test13 case %d", 1+tp-test13_data);
 		sprintf (key, "cauchy_01 0%d %d", tp->n, tp->w);
+
 		n = tp->n;
 		bitmatrix = jerasure_matrix_to_bitmatrix(1, 1, tp->w, &n);
 		no = 0;
@@ -2852,6 +2854,171 @@ test13()
 	return errors;
 }
 
+int test14_mat1[] = {
+6, 7, 2,
+5, 2, 7,
+1, 3, 4,
+};
+
+/*
+cauchy_02 3 3 3
+*/
+
+struct test14 {
+	int w,k,m,no,*mat;
+} test14_data[] = {
+	{3,3,3,46,test14_mat1},
+{0}};
+
+test14()
+{
+	struct test14 *tp;
+	int i, j;
+	int *matrix, *bitmatrix, *m2, *x, *y;
+	char **data, **coding, **ptrs;
+	int **smart;
+	int no;
+	int *erasures, *erased;
+//	double stats[3];
+	int failed;
+	int errors = 0;
+	char label[80];
+	char key[80];
+	unsigned foo;
+	rc4_key_schedule ks[1];
+	LONG data_cksum, coding_cksum, sum;
+
+	for (tp = test14_data; tp->w; ++tp) {
+		failed = 0;
+		sprintf (label, "test14 case %d", 1+tp-test14_data);
+		sprintf (key, "cauchy_02 0%d %d", tp->k, tp->m, tp->w);
+		rc4_set_key(ks, strlen(key), key, 0);
+
+		matrix = cauchy_original_coding_matrix(tp->k, tp->m, tp->w);
+		if (!matrix) {
+			failed |= 1;
+			printf ("%s: bad ones count: expected %d got %d\n",
+				label, tp->no, no);
+			goto Fl;
+		}
+
+		no = 0;
+		for (i = 0; i < tp->k*tp->m; i++) {
+			no += cauchy_n_ones(matrix[i], tp->w);
+		}
+		if (tp->no != no) {
+			failed |= 2;
+			printf("%s: matrix has %d ones, expected %d\n", no, tp->no);
+		}
+		if (memcmp(matrix, tp->mat, sizeof(int)*tp->m*tp->k)) {
+			failed |= 2;
+			printf("%s: matrix does not match expected\n", label);
+		}
+		if (failed & 2) {
+			jerasure_print_matrix(matrix, tp->m, tp->k, tp->w);
+		}
+		bitmatrix = jerasure_matrix_to_bitmatrix(tp->k, tp->m, tp->w, matrix);
+
+		smart = jerasure_smart_bitmatrix_to_schedule(tp->k, tp->m, tp->w, bitmatrix);
+
+		data = talloc(char *, tp->k);
+		for (i = 0; i < tp->k; i++) {
+			data[i] = talloc(char, sizeof(gdata)*tp->w);
+			fillrand2(ks, data[i], sizeof(gdata)*tp->w);
+		}
+		data_cksum = vector_check_sum(data, tp->k, sizeof(gdata));
+
+		coding = talloc(char *, tp->m);
+		for (i = 0; i < tp->m; i++) {
+			coding[i] = talloc(char, sizeof(gdata)*tp->w);
+		}
+
+		jerasure_schedule_encode(tp->k, tp->m, tp->w, smart, data, coding, tp->w*sizeof(gdata), sizeof(gdata));
+//		jerasure_get_stats(stats);
+		coding_cksum = vector_check_sum(coding, tp->m, sizeof(gdata));
+
+		erasures = talloc(int, (tp->m+1));
+		erased = talloc(int, (tp->k+tp->m));
+		for (i = 0; i < tp->m+tp->k; i++) erased[i] = 0;
+		for (i = 0; i < tp->m; ) {
+			foo = 0;
+			rc4(ks, sizeof foo, (unsigned char *)&foo, (unsigned char *)&foo);
+			foo %= (tp->k+tp->m);
+			erasures[i] = foo;
+			if (erased[erasures[i]] == 0) {
+				erased[erasures[i]] = 1;
+				memset((erasures[i] < tp->k) ? data[erasures[i]] : coding[erasures[i]-tp->k], 0, sizeof(gdata)*tp->w);
+				i++;
+			}
+		}
+		erasures[i] = -1;
+
+		jerasure_schedule_decode_lazy(tp->k, tp->m, tp->w, bitmatrix, erasures, data, coding, tp->w*sizeof(gdata), sizeof(gdata), 1);
+//		jerasure_get_stats(stats);
+
+		sum = vector_check_sum(data, tp->k, sizeof(gdata));
+		if (sum != data_cksum) {
+			failed |= 4;
+			printf ("%s: %s: DATA not right?\n",
+				label, key);
+		}
+		sum = vector_check_sum(coding, tp->m, sizeof(gdata));
+		if (sum != coding_cksum) {
+			failed |= 4;
+			printf ("%s: %s: CODING not right?\n",
+				label, key);
+		}
+
+		if (failed & 4) {
+			printf("%s: State of the system after decoding\n", label);
+			print_data_and_coding_2(tp->k, tp->m, tp->w, sizeof(gdata), data, coding);
+		}
+
+		x = talloc(int, tp->m);
+		y = talloc(int, tp->k);
+		if (x == NULL || y == NULL) { perror("malloc"); goto Bad; }
+		for (i = 0; i < tp->m; i++) x[i] = i;
+		for (i = 0; i < tp->k; i++) y[i] = tp->m+i;
+		m2 = cauchy_xy_coding_matrix(tp->k, tp->m, tp->w, x, y);
+		if (memcmp(matrix, m2, sizeof(int)*tp->k*tp->m) != 0) {
+			failed |= 8;
+			printf("%s: Error -- the matrices made by original and xy don't match\n", label);
+		}
+		if (failed & 8) {
+			printf ("%s: original\n", label);
+			jerasure_print_matrix(matrix, tp->m, tp->k, tp->w);
+			printf ("%s: xy\n", label);
+			jerasure_print_matrix(m2, tp->m, tp->k, tp->w);
+		}
+
+		/* free data to avoid false positives for leak testing */
+	Bad:
+		free(m2);
+		free(y);
+		free(x);
+		free(erased);
+		free(erasures);
+		for (i = 0; i < tp->m; i++) {
+			free(coding[i]);
+		}
+		free(coding);
+		for (i = 0; i < tp->k; i++) {
+			free(data[i]);
+		}
+		free(data);
+		jerasure_free_schedule(smart);
+		free(bitmatrix);
+		free(matrix);
+
+	Fl:
+		if (failed)
+			printf ("%s failed: %s\n", label, key);
+
+		errors += !!failed;
+	}
+	return errors;
+}
+
 int main(int ac, char **av)
 {
 	int errors = 0;
@@ -2867,6 +3034,7 @@ int main(int ac, char **av)
 	errors += test11();
 	errors += test12();
 	errors += test13();
+	errors += test14();
 	if (!errors) {
 		fprintf(stderr, "all tests passed\n");
 	}
