@@ -2449,6 +2449,228 @@ Dm:
 	return errors;
 }
 
+int test10_ext1[] = {
+1,    0,    0,    0,    0,    0,
+1,    1,    1,    1,    1,    1,
+1,    2,    4,    8,   16,   32,
+1,    3,    5,   15,   17,   51,
+1,    4,   16,   64,  256, 1024,
+1,    5,   17,   85,  257, 1285,
+1,    6,   20,  120,  272, 1632,
+1,    7,   21,  107,  273, 1911,
+1,    8,   64,  512,   10,   80,
+0,    0,    0,    0,    0,    1,
+};
+int test10_dist1[] = {
+1,    0,    0,    0,    0,    0,
+0,    1,    0,    0,    0,    0,
+0,    0,    1,    0,    0,    0,
+0,    0,    0,    1,    0,    0,
+0,    0,    0,    0,    1,    0,
+0,    0,    0,    0,    0,    1,
+1,    1,    1,    1,    1,    1,
+1, 1879, 1231, 1283,  682, 1538,
+1, 1366, 1636, 1480,  683,  934,
+1, 1023, 2045, 1027, 2044, 1026,
+};
+int test10_out1[] = {
+1,    1,    1,    1,    1,    1,
+1, 1879, 1231, 1283,  682, 1538,
+1, 1366, 1636, 1480,  683,  934,
+1, 1023, 2045, 1027, 2044, 1026,
+};
+
+/*
+reed_sol_02 6 4 11
+*/
+
+struct test10 {
+	int w, k,m,*ext,*dist,*out;
+} test10_data[] = {
+	{11,6,4,test10_ext1,test10_dist1,test10_out1},
+{0}};
+
+test10()
+{
+	struct test10 *tp;
+	int *matrix;
+	int failed;
+	int errors = 0;
+	char label[80];
+	char key[80];
+
+	for (tp = test10_data; tp->w; ++tp) {
+		failed = 0;
+		sprintf (label, "test8 case %d", 1+tp-test10_data);
+		sprintf (key, "reed_sol_02 %d %d %d",
+			tp->k, tp->m, tp->w);
+
+		matrix = reed_sol_extended_vandermonde_matrix(tp->k+tp->m,
+			tp->k, tp->w);
+		if (memcmp(matrix, tp->ext, sizeof *matrix * (tp->m*tp->k))) {
+			failed = 1;
+			printf ("%s EXPECTED\n", label);
+			jerasure_print_matrix(tp->ext, tp->k+tp->m, tp->k, tp->w);
+			printf ("%s GOT\n", label);
+			jerasure_print_matrix(matrix, tp->k+tp->m, tp->k, tp->w);
+		}
+		/* free data to avoid false positives for leak testing */
+		free(matrix);
+
+		matrix = reed_sol_big_vandermonde_distribution_matrix(tp->k+tp->m,
+			tp->k, tp->w);
+		if (memcmp(matrix, tp->dist, sizeof *matrix * (tp->m*tp->k))) {
+			failed = 1;
+			printf ("%s EXPECTED\n", label);
+			jerasure_print_matrix(tp->dist, tp->k+tp->m, tp->k, tp->w);
+			printf ("%s GOT\n", label);
+			jerasure_print_matrix(matrix, tp->k+tp->m, tp->k, tp->w);
+		}
+		/* free data to avoid false positives for leak testing */
+		free(matrix);
+
+		matrix = reed_sol_vandermonde_coding_matrix(tp->k, tp->m, tp->w);
+		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->m*tp->k))) {
+			failed = 1;
+			printf ("%s EXPECTED\n", label);
+			jerasure_print_matrix(tp->out, tp->m, tp->k, tp->w);
+			printf ("%s GOT\n", label);
+			jerasure_print_matrix(matrix, tp->m, tp->k, tp->w);
+		}
+		/* free data to avoid false positives for leak testing */
+		free(matrix);
+
+		if (failed)
+			printf ("%s failed: %s\n", label, key);
+
+		errors += failed;
+	}
+	return errors;
+}
+
+int test11_out1[] = {
+1,   1,   1,   1,   1,   1,   1,   1,   1,
+1,   2,   4,   8,  16,  32,  64, 128,  29,
+};
+
+/*
+reed_sol_03 9 8
+*/
+
+struct test11 {
+	int w, k,m,*out;
+} test11_data[] = {
+	{8,9,2,test11_out1},
+{0}};
+
+test11()
+{
+	struct test11 *tp;
+	int *matrix;
+	int i, j;
+	int failed;
+	int errors = 0;
+	char label[80];
+	char key[80];
+	unsigned foo;
+	char **data, **coding;
+	rc4_key_schedule ks[1];
+	int *erasures, *erased;
+	int *decoding_matrix, *dm_ids;
+	LONG data_cksum, coding_cksum, sum;
+
+	for (tp = test11_data; tp->w; ++tp) {
+		failed = 0;
+		sprintf (label, "test8 case %d", 1+tp-test11_data);
+		sprintf (key, "reed_sol_03 %d %d %d",
+			tp->k, tp->m, tp->w);
+		rc4_set_key(ks, strlen(key), key, 0);
+
+		matrix = reed_sol_vandermonde_coding_matrix(tp->k, tp->m, tp->w);
+		matrix = reed_sol_r6_coding_matrix(tp->k, tp->w);
+
+		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->m*tp->k))) {
+			failed = 1;
+			printf ("%s EXPECTED\n", label);
+			jerasure_print_matrix(tp->out, tp->m, tp->k, tp->w);
+			printf ("%s GOT\n", label);
+			jerasure_print_matrix(matrix, tp->m, tp->k, tp->w);
+		}
+
+		data = talloc(char *, tp->k);
+		for (i = 0; i < tp->k; ++i) {
+			data[i] = talloc(char, sizeof(gdata));
+			fillrand2(ks, data[i], sizeof(gdata));
+		}
+		data_cksum = vector_check_sum(data, tp->k, sizeof(gdata));
+
+		coding = talloc(char *, tp->m);
+		for (i = 0; i < tp->m; ++i) {
+			coding[i] = talloc(char, sizeof(gdata));
+		}
+
+		reed_sol_r6_encode(tp->k, tp->w, data, coding, sizeof(gdata));
+		coding_cksum = vector_check_sum(coding, tp->m, sizeof(gdata));
+
+		erasures = talloc(int, (tp->m+1));
+		erased = talloc(int, (tp->k+tp->m));
+		for (i = 0; i < tp->m+tp->k; ++i) erased[i] = 0;
+		for (i = 0; i < tp->m; ) {
+			foo = 0;
+			rc4(ks, sizeof foo, (unsigned char *)&foo, (unsigned char *)&foo);
+			foo %= (tp->k+tp->m);
+			erasures[i] = foo;
+			if (erased[erasures[i]] == 0) {
+				erased[erasures[i]] = 1;
+				memset((erasures[i] < tp->k) ? data[erasures[i]] : coding[erasures[i]-tp->k], 0, sizeof(gdata));
+				++i;
+			}
+		}
+		erasures[i] = -1;
+
+		i = jerasure_matrix_decode(tp->k, tp->m, tp->w, matrix, 1, erasures, data, coding, sizeof(gdata));
+		if (i < 0) {
+			failed = 1;
+			printf ("%s: %s: matrix_decode failed?\n",
+				label, key);
+			goto Dm;
+		}
+
+		sum = vector_check_sum(data, tp->k, sizeof(gdata));
+		if (sum != data_cksum) {
+			failed = 1;
+			printf ("%s: %s: DATA not right?\n",
+				label, key);
+		}
+		sum = vector_check_sum(coding, tp->m, sizeof(gdata));
+		if (sum != coding_cksum) {
+			failed = 1;
+			printf ("%s: %s: CODING not right?\n",
+				label, key);
+		}
+Dm:
+		if (failed) {
+			printf ("%s: %s\n", label, key);
+			printf ("Data and coding\n");
+			print_data_and_coding_1(tp->k, tp->m, tp->w, sizeof(gdata), data, coding);
+		}
+		/* free data to avoid false positives for leak testing */
+		free(erased);
+		free(erasures);
+		for (i = 0; i < tp->m; ++i) {
+			free(coding[i]);
+		}
+		free(coding);
+		for (i = 0; i < tp->k; ++i) {
+			free(data[i]);
+		}
+		free(data);
+		free(matrix);
+		errors += failed;
+	}
+	return errors;
+}
+
 int main(int ac, char **av)
 {
 	int errors = 0;
@@ -2460,6 +2682,8 @@ int main(int ac, char **av)
 	errors += test7();
 	errors += test8();
 	errors += test9();
+	errors += test10();
+	errors += test11();
 	if (!errors) {
 		fprintf(stderr, "all tests passed\n");
 	}
