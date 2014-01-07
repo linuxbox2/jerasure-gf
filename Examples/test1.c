@@ -2776,6 +2776,82 @@ test12()
 	return errors;
 }
 
+int test13_out1[] = {
+1,0,0,0,0,
+0,1,0,0,0,
+0,0,1,0,0,
+0,0,0,1,0,
+0,0,0,0,1,
+};
+
+int test13_out2[] = {
+1,1,1,1,0,
+1,1,1,1,1,
+1,0,0,0,1,
+1,1,0,0,0,
+1,1,1,0,0,
+};
+
+/*
+cauchy_01 01 5
+cauchy_01 31 5
+*/
+
+struct test13 {
+	int w,n,no,*out;
+} test13_data[] = {
+	{5,1,5,test13_out1},
+	{5,31,16,test13_out2},
+{0}};
+
+test13()
+{
+	struct test13 *tp;
+	int i, n, no;
+	int *bitmatrix;
+	int failed;
+	int errors = 0;
+	char label[80];
+	char key[80];
+
+	for (tp = test13_data; tp->w; ++tp) {
+		failed = 0;
+		sprintf (label, "test13 case %d", 1+tp-test13_data);
+		sprintf (key, "cauchy_01 0%d %d", tp->n, tp->w);
+		n = tp->n;
+		bitmatrix = jerasure_matrix_to_bitmatrix(1, 1, tp->w, &n);
+		no = 0;
+		for (i = 0; i < tp->w*tp->w; i++) no += bitmatrix[i];
+
+		if (no != tp->no) {
+			failed = 1;
+			printf ("%s: bad ones count: expected %d got %d\n",
+				label, tp->no, no);
+		} else if (memcmp(bitmatrix, tp->out, sizeof(int)*tp->w*tp->w)) {
+			failed = 1;
+			printf ("%s: bitmatrix results differ\n", label);
+		}
+		if (failed) {
+			printf("# Ones: %d\n", cauchy_n_ones(tp->n, tp->w));
+			printf("\n");
+			printf("Bitmatrix has %d ones\n", no);
+			printf("\n");
+			jerasure_print_bitmatrix(bitmatrix, tp->w, tp->w, tp->w);
+			printf("EXPECTED:\n");
+			jerasure_print_bitmatrix(tp->out, tp->w, tp->w, tp->w);
+		}
+
+		/* free data to avoid false positives for leak testing */
+		free(bitmatrix);
+
+		if (failed)
+			printf ("%s failed: %s\n", label, key);
+
+		errors += failed;
+	}
+	return errors;
+}
+
 int main(int ac, char **av)
 {
 	int errors = 0;
@@ -2790,6 +2866,7 @@ int main(int ac, char **av)
 	errors += test10();
 	errors += test11();
 	errors += test12();
+	errors += test13();
 	if (!errors) {
 		fprintf(stderr, "all tests passed\n");
 	}
