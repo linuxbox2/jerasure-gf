@@ -27,10 +27,13 @@
 # $Revision: 1.0 $
 # $Date: 2007/09/25 15:12:20 $
 
+VPATH=../../Jerasure-1.2A/lib
+#PFX=
+PFX=../../Jerasure-1.2A/lib/
 CC = gcc  
 #OPTS=-O3
 OPTS=-g
-CFLAGS = -I$(HOME)/include $(OPTS)
+CFLAGS = -I. -I../../Jerasure-1.2A/lib $(OPTS)
 
 ALL = libjerasure.a 
 
@@ -50,9 +53,8 @@ clean:
 #.c.o:
 #	$(CC) $(CFLAGS) -c $*.c
 
-galois.o: galois.h
-jerasure.o: jerasure.h galois.h
-reed_sol.o: jerasure.h galois.h reed_sol.h
-cauchy.o: jerasure.h galois.h cauchy.h
-liberation.o: jerasure.h galois.h liberation.h
-
+galois.o: $(PFX)galois.h
+jerasure.o: $(PFX)jerasure.h $(PFX)galois.h
+reed_sol.o: $(PFX)jerasure.h $(PFX)galois.h $(PFX)reed_sol.h
+cauchy.o: $(PFX)jerasure.h $(PFX)galois.h $(PFX)cauchy.h
+liberation.o: $(PFX)jerasure.h $(PFX)galois.h $(PFX)liberation.h

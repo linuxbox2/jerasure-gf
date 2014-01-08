@@ -42,11 +42,13 @@
 # WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
+VPATH=../../Jerasure-1.2A/Examples
+PFX=../../Jerasure-1.2A/lib/
+#PFX=../lib
 CC = gcc  
 #OPTS=-O2
 OPTS=-g
-CFLAGS = -I../lib $(OPTS)
+CFLAGS = -I. -I../lib -I../../Jerasure-1.2A/lib $(OPTS)
 
 ALL =	jerasure_01 \
         jerasure_02 \
@@ -78,11 +80,11 @@ clean:
 #.c.o:
 	#$(CC) $(CFLAGS) -c $*.c
 
-H=../lib/galois.h ../lib/jerasure.h
-H2=../lib/galois.h ../lib/reed_sol.h ../lib/jerasure.h
-H3=../lib/galois.h ../lib/cauchy.h ../lib/jerasure.h
-H4=../lib/galois.h ../lib/liberation.h ../lib/jerasure.h
-H5=../lib/galois.h ../lib/liberation.h ../lib/jerasure.h ../lib/reed_sol.h ../lib/cauchy.h
+H=$(PFX)galois.h $(PFX)jerasure.h
+H2=$(PFX)galois.h $(PFX)reed_sol.h $(PFX)jerasure.h
+H3=$(PFX)galois.h $(PFX)cauchy.h $(PFX)jerasure.h
+H4=$(PFX)galois.h $(PFX)liberation.h $(PFX)jerasure.h
+H5=$(PFX)galois.h $(PFX)liberation.h $(PFX)jerasure.h $(PFX)reed_sol.h $(PFX)cauchy.h
 L=../lib/libjerasure.a
 
 jerasure_01.o: $(H)
@@ -153,7 +155,7 @@ liberation_01.o: $(H4)
 liberation_01: liberation_01.o fillrand.o pdc2.o $(L)
 	$(CC) $(CFLAGS) -o liberation_01 liberation_01.o fillrand.o pdc2.o $(L)
 
-test1: test1.o
+test1: test1.o rc4.o shs_n.o
 	$(CC) $(CFLAGS) -o test1 test1.o rc4.o shs_n.o pdc1.o pdc2.o $(L)
 
 encoder.o: $(H5)
