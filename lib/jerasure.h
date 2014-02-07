@@ -49,9 +49,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _JERASURE_H
 #define _JERASURE_H
 
-/* This uses procedures from the Galois Field arithmetic library */
-
-#include "galois.h"
+#include "jerasure.h"
+#include "jerasure_int.h"
+struct jerasure_context;
 
 /* ------------------------------------------------------------ */
 /* In all of the routines below:
@@ -97,6 +97,9 @@ POSSIBILITY OF SUCH DAMAGE.
           3 = destination device (0 - k+m-1)
           4 = destination packet (0 - w-1)
  */
+
+/* XXX */
+struct jerasure_context *jerasure_make_context(int w);
 
 /* ---------------------------------------------------------------  */
 /* Bitmatrices / schedules ---------------------------------------- */
@@ -280,7 +283,7 @@ void jerasure_print_matrix(int *matrix, int rows, int cols, int w);
 void jerasure_print_bitmatrix(int *matrix, int rows, int cols, int w);
 
 
-int *jerasure_matrix_multiply(int *m1, int *m2, int r1, int c1, int r2, int c2, int w);
+int *jerasure_matrix_multiply(struct jerasure_context *ctx, int *m1, int *m2, int r1, int c1, int r2, int c2);
 
 /* ------------------------------------------------------------ */
 /* Stats ------------------------------------------------------ */

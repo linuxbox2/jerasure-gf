@@ -50,14 +50,31 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 
-#include "galois.h"
 #include "jerasure.h"
+#include "jerasure_int.h"
 
 #define talloc(type, num) (type *) malloc(sizeof(type)*(num))
 
 static double jerasure_total_xor_bytes = 0;
 static double jerasure_total_gf_bytes = 0;
 static double jerasure_total_memcpy_bytes = 0;
+
+struct jerasure_context *jerasure_make_context(int w)
+{
+  struct jerasure_context *r;
+
+  r = malloc(sizeof *r);
+  memset(r, 0, sizeof *r);
+  r->w = w;
+  gf_init_easy(&r->gf, w);
+  return r;
+}
+
+void jerasure_release_context(struct jerasure_context *ctx)
+{
+	/* XXX gal_stub: how to release multiplication tables? */
+  free(ctx);
+}
 
 void jerasure_print_matrix(int *m, int rows, int cols, int w)
 {
@@ -1139,7 +1156,7 @@ int jerasure_invertible_bitmatrix(int *mat, int rows)
 }
 
   
-int *jerasure_matrix_multiply(int *m1, int *m2, int r1, int c1, int r2, int c2, int w)
+int *jerasure_matrix_multiply(struct jerasure_context *ctx, int *m1, int *m2, int r1, int c1, int r2, int c2)
 {
   int *product, i, j, k, l;
 
@@ -1149,7 +1166,7 @@ int *jerasure_matrix_multiply(int *m1, int *m2, int r1, int c1, int r2, int c2, 
   for (i = 0; i < r1; i++) {
     for (j = 0; j < c2; j++) {
       for (k = 0; k < r2; k++) {
-        product[i*c2+j] ^= galois_single_multiply(m1[i*c1+k], m2[k*c2+j], w);
+        product[i*c2+j] ^= ctx->gf->multiply.w32(ctx->gf, m1[i*c1+k], m2[k*c2+j]);
       }
     }
   }
