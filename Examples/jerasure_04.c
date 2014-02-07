@@ -74,12 +74,15 @@ int main(int argc, char **argv)
   int *bitmatrix_copy;
   int *inverse;
   int *identity;
+  struct jerasure_context *ctx, *ctx2;
 
   if (argc != 3) usage(NULL);
   if (sscanf(argv[1], "%d", &k) == 0 || k <= 0) usage("Bad k");
   if (sscanf(argv[2], "%d", &w) == 0 || w <= 0 || w > 31) usage("Bad w");
   if (k >= (1 << w)) usage("K too big");
 
+  ctx = jerasure_make_context(w);
+  ctx2 = jerasure_make_context(2);
   matrix = talloc(int, k*k);
   bitmatrix_copy = talloc(int, k*w*k*w);
   inverse = talloc(int, k*w*k*w);
@@ -102,7 +105,7 @@ int main(int argc, char **argv)
     memcpy(bitmatrix_copy, bitmatrix, sizeof(int)*k*w*k*w);
     i = jerasure_invert_bitmatrix(bitmatrix_copy, inverse, k*w);
     jerasure_print_bitmatrix(inverse, k*w, k*w, w);
-    identity = jerasure_matrix_multiply(inverse, bitmatrix, k*w, k*w, k*w, k*w, 2);
+    identity = jerasure_matrix_multiply(ctx2, inverse, bitmatrix, k*w, k*w, k*w, k*w);
     printf("\nInverse times matrix (should be identity):\n");
     jerasure_print_bitmatrix(identity, k*w, k*w, w);
     free(identity);
@@ -112,6 +115,8 @@ int main(int argc, char **argv)
   free(inverse);
   free(bitmatrix_copy);
   free(matrix);
+  jerasure_release_context(ctx2);
+  jerasure_release_context(ctx);
   return 0;
 }
 

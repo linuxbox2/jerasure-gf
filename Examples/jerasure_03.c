@@ -77,12 +77,14 @@ int main(int argc, char **argv)
   int *matrix_copy;
   int *inverse;
   int *identity;
+  struct jerasure_context *ctx;
 
   if (argc != 3) usage(NULL);
   if (sscanf(argv[1], "%d", &k) == 0 || k <= 0) usage("Bad k");
   if (sscanf(argv[2], "%d", &w) == 0 || w <= 0 || w > 31) usage("Bad w");
   if (k >= (1 << w)) usage("K too big");
 
+  ctx = jerasure_make_context(w);
   matrix = talloc(int, k*k);
   matrix_copy = talloc(int, k*k);
   inverse = talloc(int, k*k);
@@ -104,7 +106,7 @@ int main(int argc, char **argv)
     memcpy(matrix_copy, matrix, sizeof(int)*k*k);
     i = jerasure_invert_matrix(matrix_copy, inverse, k, w);
     jerasure_print_matrix(inverse, k, k, w);
-    identity = jerasure_matrix_multiply(inverse, matrix, k, k, k, k, w);
+    identity = jerasure_matrix_multiply(ctx, inverse, matrix, k, k, k, k);
     printf("\nInverse times matrix (should be identity):\n");
     jerasure_print_matrix(identity, k, k, w);
     free(identity);
@@ -112,6 +114,7 @@ int main(int argc, char **argv)
   free(matrix);
   free(matrix_copy);
   free(inverse);
+  jerasure_release_context(ctx);
   return 0;
 }
 

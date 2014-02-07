@@ -1511,7 +1511,10 @@ int test4()
 	int *identity;
 	int i, j, n;
 	int errors = 0;
+
 	for (tp = test4_data; tp->w; ++tp) {
+		struct jerasure_context *ctx = jerasure_make_context(tp->w);
+		struct jerasure_context *ctx2 = jerasure_make_context(2);
 		matrix = talloc(int, tp->k*tp->k);
 		bitmatrix_copy = talloc(int, tp->k*tp->w*tp->k*tp->w);
 		inverse = talloc(int, tp->k*tp->w*tp->k*tp->w);
@@ -1550,7 +1553,7 @@ int test4()
 				jerasure_print_bitmatrix(tp->out, tp->k*tp->w, tp->k*tp->w, tp->w);
 				printf ("test4 case %d GOT\n", 1+tp-test4_data);
 				jerasure_print_bitmatrix(inverse, tp->k*tp->w, tp->k*tp->w, tp->w);
-				identity = jerasure_matrix_multiply(inverse, bitmatrix, tp->k*tp->w, tp->k*tp->w, tp->k*tp->w, tp->k*tp->w, 2);
+				identity = jerasure_matrix_multiply(ctx2, inverse, bitmatrix, tp->k*tp->w, tp->k*tp->w, tp->k*tp->w, tp->k*tp->w);
 				printf("\ntest4 case %d Inverse times matrix (should be identity):\n", 1+tp-test4_data);
 				jerasure_print_bitmatrix(identity, tp->k*tp->w, tp->k*tp->w, tp->w);
 				free(identity);
@@ -1561,6 +1564,8 @@ int test4()
 		free(inverse);
 		free(bitmatrix_copy);
 		free(matrix);
+		jerasure_release_context(ctx2);
+		jerasure_release_context(ctx);
 	}
 	return errors;
 }
