@@ -104,7 +104,7 @@ int main(int argc, char **argv)
     matrix[k+j] = i;
     i = ctx->gf->multiply.w32(ctx->gf, i, 2);
   }
-  bitmatrix = jerasure_matrix_to_bitmatrix(k, m, w, matrix);
+  bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 
   smart = jerasure_smart_bitmatrix_to_schedule(k, m, w, bitmatrix);
   cache = jerasure_generate_schedule_cache(k, m, w, bitmatrix, 1);

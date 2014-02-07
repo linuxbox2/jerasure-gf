@@ -121,6 +121,7 @@ int main (int argc, char **argv) {
 	double tsec;
 	double totalsec;
 
+	struct jerasure_context *ctx;
 	
 	signal(SIGQUIT, ctrl_bs_handler);
 
@@ -203,6 +204,8 @@ int main (int argc, char **argv) {
 	md = strlen(temp);
 	gettimeofday(&t3, &tz);
 
+	ctx = jerasure_make_context(w);
+
 	/* Create coding matrix or bitmatrix */
 	switch(tech) {
 		case No_Coding:
@@ -215,11 +218,11 @@ int main (int argc, char **argv) {
 			break;
 		case Cauchy_Orig:
 			matrix = cauchy_original_coding_matrix(k, m, w);
-			bitmatrix = jerasure_matrix_to_bitmatrix(k, m, w, matrix);
+			bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 			break;
 		case Cauchy_Good:
 			matrix = cauchy_good_general_coding_matrix(k, m, w);
-			bitmatrix = jerasure_matrix_to_bitmatrix(k, m, w, matrix);
+			bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 			break;
 		case Liberation:
 			bitmatrix = liberation_coding_bitmatrix(k, w);
@@ -383,6 +386,7 @@ int main (int argc, char **argv) {
 
 	if (bitmatrix)
 		free(bitmatrix);
+	jerasure_release_context(ctx);
 	
 	/* Stop timing and print time */
 	gettimeofday(&t2, &tz);

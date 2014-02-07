@@ -81,7 +81,7 @@ int main(int argc, char **argv)
     n = ctx->gf->multiply.w32(ctx->gf, n, 2);
   }
 
-  bitmatrix = jerasure_matrix_to_bitmatrix(c, r, w, matrix);
+  bitmatrix = jerasure_matrix_to_bitmatrix(ctx, c, r, matrix);
   jerasure_print_bitmatrix(bitmatrix, r*w, c*w, w);
   free(matrix);
   jerasure_release_context(ctx);

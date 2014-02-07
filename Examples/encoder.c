@@ -139,6 +139,7 @@ int main (int argc, char **argv) {
 	/* Find buffersize */
 	int up, down;
 
+	struct jerasure_context *ctx;
 
 	signal(SIGQUIT, ctrl_bs_handler);
 
@@ -428,7 +429,8 @@ int main (int argc, char **argv) {
                 if (coding[i] == NULL) { perror("malloc"); exit(1); }
 	}
 
-	
+
+	ctx = jerasure_make_context(w);
 
 	/* Create coding matrix or bitmatrix and schedule */
 	gettimeofday(&t3, &tz);
@@ -440,12 +442,12 @@ int main (int argc, char **argv) {
 			break;
 		case Cauchy_Orig:
 			matrix = cauchy_original_coding_matrix(k, m, w);
-			bitmatrix = jerasure_matrix_to_bitmatrix(k, m, w, matrix);
+			bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 			schedule = jerasure_smart_bitmatrix_to_schedule(k, m, w, bitmatrix);
 			break;
 		case Cauchy_Good:
 			matrix = cauchy_good_general_coding_matrix(k, m, w);
-			bitmatrix = jerasure_matrix_to_bitmatrix(k, m, w, matrix);
+			bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 			schedule = jerasure_smart_bitmatrix_to_schedule(k, m, w, bitmatrix);
 			break;	
 		case Liberation:
@@ -608,6 +610,8 @@ int main (int argc, char **argv) {
 		jerasure_free_schedule(schedule);
 	if (bitmatrix)
 		free(bitmatrix);
+
+	jerasure_release_context(ctx);
 	
 	/* Calculate rate in MB/sec and print */
 	gettimeofday(&t2, &tz);

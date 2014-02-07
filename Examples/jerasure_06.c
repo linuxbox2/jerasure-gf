@@ -82,6 +82,7 @@ int main(int argc, char **argv)
   char **data, **coding;
   int *erasures, *erased;
   int *decoding_matrix, *dm_ids;
+  struct jerasure_context *ctx;
   
   if (argc != 5) usage(NULL);
   if (sscanf(argv[1], "%d", &k) == 0 || k <= 0) usage("Bad k");
@@ -91,13 +92,14 @@ int main(int argc, char **argv)
   if (sscanf(argv[4], "%d", &psize) == 0 || psize <= 0) usage("Bad packetsize");
   if(psize%sizeof(gdata) != 0) usage("Packetsize must be multiple of sizeof(gdata)");
 
+  ctx = jerasure_make_context(w);
   matrix = talloc(int, m*k);
   for (i = 0; i < m; i++) {
     for (j = 0; j < k; j++) {
       matrix[i*k+j] = galois_single_divide(1, i ^ (m + j), w);
     }
   }
-  bitmatrix = jerasure_matrix_to_bitmatrix(k, m, w, matrix);
+  bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 
   printf("Last (m * w) rows of the Binary Distribution Matrix:\n\n");
   jerasure_print_bitmatrix(bitmatrix, w*m, w*k, w);
@@ -184,6 +186,7 @@ int main(int argc, char **argv)
   free(data);
   free(bitmatrix);
   free(matrix);
+  jerasure_release_context(ctx);
 
   return 0;
 }

@@ -93,7 +93,7 @@ int main(int argc, char **argv)
       matrix[i*k+j] = (n == 0) ? 0 : galois_single_divide(1, n, w);
     }
   }
-  bitmatrix = jerasure_matrix_to_bitmatrix(k, k, w, matrix);
+  bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, k, matrix);
 
   printf("The Cauchy Bit-Matrix:\n");
   jerasure_print_bitmatrix(bitmatrix, k*w, k*w, w);

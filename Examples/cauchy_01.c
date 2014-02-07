@@ -70,13 +70,15 @@ int main(int argc, char **argv)
 {
   int n, i, no, w;
   int *bitmatrix;
+  struct jerasure_context *ctx;
   
   if (argc != 3) usage(NULL);
   if (sscanf(argv[1], "%d", &n) == 0 || n <= 0) usage("Bad n");
   if (sscanf(argv[2], "%d", &w) == 0 || w <= 0 || w > 32) usage("Bad w");
   if (w < 30 && n >= (1 << w)) usage("n is too big");
 
-  bitmatrix = jerasure_matrix_to_bitmatrix(1, 1, w, &n);
+  ctx = jerasure_make_context(w);
+  bitmatrix = jerasure_matrix_to_bitmatrix(ctx, 1, 1, &n);
   no = 0;
   for (i = 0; i < w*w; i++) no += bitmatrix[i];
 
@@ -87,6 +89,7 @@ int main(int argc, char **argv)
   jerasure_print_bitmatrix(bitmatrix, w, w, w);
   /* free data to avoid false positives for leak testing */
   free(bitmatrix);
+  jerasure_release_context(ctx);
 
   return 0;
 }

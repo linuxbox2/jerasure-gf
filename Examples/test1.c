@@ -1417,7 +1417,7 @@ int test2()
 			matrix[i] = n;
 			n = ctx->gf->multiply.w32(ctx->gf, n, 2);
 		}
-		bitmatrix = jerasure_matrix_to_bitmatrix(tp->c, tp->r, tp->w, matrix);
+		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->c, tp->r, matrix);
 		if (memcmp(bitmatrix, tp->out, sizeof *bitmatrix * (tp->r*tp->c*tp->w*tp->w))) {
 			++errors;
 			printf ("test2 case %d EXPECTED\n", 1+tp-test2_data);
@@ -1532,7 +1532,7 @@ int test4()
 				matrix[i*tp->k+j] = (n == 0) ? 0 : galois_single_divide(1, n, tp->w);
 			}
 		}
-		bitmatrix = jerasure_matrix_to_bitmatrix(tp->k, tp->k, tp->w, matrix);
+		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->k, matrix);
 
 //		printf("The Cauchy Bit-Matrix:\n");
 //		jerasure_print_bitmatrix(bitmatrix, tp->k*tp->w, tp->k*tp->w, tp->w);
@@ -1831,6 +1831,7 @@ int test6()
 	int *erasures, *erased;
 	int *decoding_matrix, *dm_ids;
 	LONG data_cksum, coding_cksum;
+	struct jerasure_context *ctx;
 
 	for (tp = test6_data; tp->w; ++tp) {
 		failed = 0;
@@ -1838,13 +1839,14 @@ int test6()
 		sprintf (key, "jerasure_06 %d %d %d %d", tp->k, tp->m, tp->w, tp->ps);
 		rc4_set_key(ks, strlen(key), key, 0);
 
+		ctx = jerasure_make_context(tp->w);
 		matrix = talloc(int, tp->m*tp->k);
 		for (i = 0; i < tp->m; ++i) {
 			for (j = 0; j < tp->k; ++j) {
 				matrix[i*tp->k+j] = galois_single_divide(1, i ^ (tp->m + j), tp->w);
 			}
 		}
-		bitmatrix = jerasure_matrix_to_bitmatrix(tp->k, tp->m, tp->w, matrix);
+		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->m, matrix);
 		data = talloc(char *, tp->k);
 		shsInit(si);
 		for (i = 0; i < tp->k; ++i) {
@@ -1977,6 +1979,7 @@ Dm:
 		free(data);
 		free(bitmatrix);
 		free(matrix);
+		jerasure_release_context(ctx);
 		errors += failed;
 	}
 	return errors;
@@ -2029,6 +2032,7 @@ int test7()
 	SHS_INFO si[1];
 	int *erasures, *erased;
 	LONG data_cksum, coding_cksum, sum;
+	struct jerasure_context *ctx;
 
 	for (tp = test7_data; tp->w; ++tp) {
 		failed = 0;
@@ -2036,13 +2040,14 @@ int test7()
 		sprintf (key, "jerasure_07 %d %d %d", tp->k, tp->m, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
+		ctx =  jerasure_make_context(tp->w);
 		matrix = talloc(int, tp->m*tp->k);
 		for (i = 0; i < tp->m; ++i) {
 			for (j = 0; j < tp->k; ++j) {
 				matrix[i*tp->k+j] = galois_single_divide(1, i ^ (tp->m + j), tp->w);
 			}
 		}
-		bitmatrix = jerasure_matrix_to_bitmatrix(tp->k, tp->m, tp->w, matrix);
+		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->m, matrix);
 		if (memcmp(bitmatrix, tp->dist, sizeof *bitmatrix*tp->w*tp->w*tp->m*tp->k)) {
 			failed = 1;
 			printf ("%s: %s: matrix_to_bitmatrix failed?\n",
@@ -2149,6 +2154,7 @@ int test7()
 		jerasure_free_schedule(dumb);
 		free(bitmatrix);
 		free(matrix);
+		jerasure_release_context(ctx);
 		errors += failed;
 	}
 	return errors;
@@ -2193,6 +2199,7 @@ int test8()
 	SHS_INFO si[1];
 	int *erasures, *erased;
 	LONG data_cksum, coding_cksum, sum;
+	struct jerasure_context *ctx;
 
 	for (tp = test8_data; tp->w; ++tp) {
 		failed = 0;
@@ -2205,15 +2212,16 @@ int test8()
 				tp->k, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
+		ctx = jerasure_make_context(tp->w);
 		matrix = talloc(int, tp->m*tp->k);
 		for (j = 0; j < tp->k; ++j) matrix[j] = 1;
 		i = 1;
 		for (j = 0; j < tp->k; ++j) {
 			matrix[tp->k+j] = i;
 				/* ?? 2=m */
-			i = galois_single_multiply(i, 2, tp->w);
+			i = ctx->gf->multiply.w32(ctx->gf, i, 2);
 		}
-		bitmatrix = jerasure_matrix_to_bitmatrix(tp->k, tp->m, tp->w, matrix);
+		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->m, matrix);
 		if (memcmp(bitmatrix, tp->dist, sizeof *bitmatrix*tp->w*tp->w*tp->m*tp->k)) {
 			failed = 1;
 			printf ("%s: %s: matrix_to_bitmatrix failed?\n",
@@ -2331,6 +2339,7 @@ int test8()
 		free(data);
 		free(bitmatrix);
 		free(matrix);
+		jerasure_release_context(ctx);
 		errors += failed;
 	}
 	return errors;
@@ -2827,14 +2836,16 @@ test13()
 	int errors = 0;
 	char label[80];
 	char key[80];
+	struct jerasure_context *ctx;
 
 	for (tp = test13_data; tp->w; ++tp) {
 		failed = 0;
 		sprintf (label, "test13 case %d", 1+tp-test13_data);
 		sprintf (key, "cauchy_01 0%d %d", tp->n, tp->w);
 
+		ctx = jerasure_make_context(tp->w);
 		n = tp->n;
-		bitmatrix = jerasure_matrix_to_bitmatrix(1, 1, tp->w, &n);
+		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, 1, 1, &n);
 		no = 0;
 		for (i = 0; i < tp->w*tp->w; i++) no += bitmatrix[i];
 
@@ -2858,6 +2869,7 @@ test13()
 
 		/* free data to avoid false positives for leak testing */
 		free(bitmatrix);
+		jerasure_release_context(ctx);
 
 		if (failed)
 			printf ("%s failed: %s\n", label, key);
@@ -2906,6 +2918,7 @@ test14()
 	unsigned foo;
 	rc4_key_schedule ks[1];
 	LONG data_cksum, coding_cksum, sum;
+	struct jerasure_context *ctx;
 
 	for (tp = test14_data; tp->w; ++tp) {
 		failed = 0;
@@ -2913,6 +2926,7 @@ test14()
 		sprintf (key, "cauchy_02 0%d %d", tp->k, tp->m, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
+		ctx = jerasure_make_context(tp->w);
 		matrix = cauchy_original_coding_matrix(tp->k, tp->m, tp->w);
 		if (!matrix) {
 			failed |= 1;
@@ -2939,7 +2953,7 @@ test14()
 			printf ("%s: expected\n", label);
 			jerasure_print_matrix(tp->mat, tp->m, tp->k, tp->w);
 		}
-		bitmatrix = jerasure_matrix_to_bitmatrix(tp->k, tp->m, tp->w, matrix);
+		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->m, matrix);
 
 		smart = jerasure_smart_bitmatrix_to_schedule(tp->k, tp->m, tp->w, bitmatrix);
 
@@ -3031,6 +3045,7 @@ test14()
 		jerasure_free_schedule(smart);
 		free(bitmatrix);
 		free(matrix);
+		jerasure_release_context(ctx);
 
 	Fl:
 		if (failed)
@@ -3080,6 +3095,7 @@ test15()
 	unsigned foo;
 	rc4_key_schedule ks[1];
 	LONG data_cksum, coding_cksum, sum;
+	struct jerasure_context *ctx;
 
 	for (tp = test15_data; tp->w; ++tp) {
 		failed = 0;
@@ -3087,6 +3103,7 @@ test15()
 		sprintf (key, "cauchy_03 0%d %d", tp->k, tp->m, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
+		ctx = jerasure_make_context(tp->w);
 		matrix = cauchy_original_coding_matrix(tp->k, tp->m, tp->w);
 		if (!matrix) {
 			failed |= 1;
@@ -3122,7 +3139,7 @@ test15()
 			printf ("%s: expected\n", label);
 			jerasure_print_matrix(tp->mat, tp->m, tp->k, tp->w);
 		}
-		bitmatrix = jerasure_matrix_to_bitmatrix(tp->k, tp->m, tp->w, matrix);
+		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->m, matrix);
 
 		smart = jerasure_smart_bitmatrix_to_schedule(tp->k, tp->m, tp->w, bitmatrix);
 
@@ -3194,6 +3211,7 @@ test15()
 		jerasure_free_schedule(smart);
 		free(bitmatrix);
 		free(matrix);
+		jerasure_release_context(ctx);
 
 	Fl:
 		if (failed)
@@ -3243,6 +3261,7 @@ test16()
 	unsigned foo;
 	rc4_key_schedule ks[1];
 	LONG data_cksum, coding_cksum, sum;
+	struct jerasure_context *ctx;
 
 	for (tp = test16_data; tp->w; ++tp) {
 		failed = 0;
@@ -3250,6 +3269,7 @@ test16()
 		sprintf (key, "cauchy_04 0%d %d", tp->k, tp->m, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
+		ctx = jerasure_make_context(tp->w);
 		matrix = cauchy_good_general_coding_matrix(tp->k, tp->m, tp->w);
 		if (!matrix) {
 			failed |= 1;
@@ -3276,7 +3296,7 @@ test16()
 			printf ("%s: expected\n", label);
 			jerasure_print_matrix(tp->mat, tp->m, tp->k, tp->w);
 		}
-		bitmatrix = jerasure_matrix_to_bitmatrix(tp->k, tp->m, tp->w, matrix);
+		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->m, matrix);
 
 		smart = jerasure_smart_bitmatrix_to_schedule(tp->k, tp->m, tp->w, bitmatrix);
 
@@ -3348,6 +3368,7 @@ test16()
 		jerasure_free_schedule(smart);
 		free(bitmatrix);
 		free(matrix);
+		jerasure_release_context(ctx);
 
 	Fl:
 		if (failed)

@@ -89,6 +89,7 @@ int main(int argc, char **argv)
   int no;
   int *erasures, *erased;
   double stats[3];
+  struct jerasure_context *ctx;
   
   if (argc != 4) usage(NULL);
   if (sscanf(argv[1], "%d", &k) == 0 || k <= 0) usage("Bad k");
@@ -96,6 +97,7 @@ int main(int argc, char **argv)
   if (sscanf(argv[3], "%d", &w) == 0 || w <= 0 || w > 32) usage("Bad w");
   if (w < 30 && (k+m) > (1 << w)) usage("k + m is too big");
 
+  ctx = jerasure_make_context(w);
   matrix = cauchy_good_general_coding_matrix(k, m, w);
   if (matrix == NULL) {
     usage("couldn't make coding matrix");
@@ -108,7 +110,7 @@ int main(int argc, char **argv)
   printf("Matrix has %d ones\n\n", no);
   jerasure_print_matrix(matrix, m, k, w);
   printf("\n");
-  bitmatrix = jerasure_matrix_to_bitmatrix(k, m, w, matrix);
+  bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 
   smart = jerasure_smart_bitmatrix_to_schedule(k, m, w, bitmatrix);
 
@@ -164,6 +166,7 @@ int main(int argc, char **argv)
   jerasure_free_schedule(smart);
   free(bitmatrix);
   free(matrix);
+  jerasure_release_context(ctx);
   
   return 0;
 }

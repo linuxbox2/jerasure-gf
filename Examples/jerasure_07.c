@@ -83,6 +83,7 @@ int main(int argc, char **argv)
   int **smart, **dumb;
   int *erasures, *erased;
   double stats[3];
+  struct jerasure_context *ctx;
   
   if (argc != 4) usage(NULL);
   if (sscanf(argv[1], "%d", &k) == 0 || k <= 0) usage("Bad k");
@@ -90,13 +91,14 @@ int main(int argc, char **argv)
   if (sscanf(argv[3], "%d", &w) == 0 || w <= 0 || w > 32) usage("Bad m");
   if (w < 30 && (k+m) > (1 << w)) usage("k + m is too big");
 
+  ctx = jerasure_make_context(w);
   matrix = talloc(int, m*k);
   for (i = 0; i < m; i++) {
     for (j = 0; j < k; j++) {
       matrix[i*k+j] = galois_single_divide(1, i ^ (m + j), w);
     }
   }
-  bitmatrix = jerasure_matrix_to_bitmatrix(k, m, w, matrix);
+  bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 
   printf("Last m rows of the Binary Distribution Matrix:\n\n");
   jerasure_print_bitmatrix(bitmatrix, w*m, w*k, w);
@@ -174,6 +176,7 @@ int main(int argc, char **argv)
   jerasure_free_schedule(dumb);
   free(bitmatrix);
   free(matrix);
+  jerasure_release_context(ctx);
 
   return 0;
 }

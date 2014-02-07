@@ -129,7 +129,7 @@ struct jerasure_context *jerasure_make_context(int w);
                               jerasure_generate_schedule_cache.
  */
 
-int *jerasure_matrix_to_bitmatrix(int k, int m, int w, int *matrix);
+int *jerasure_matrix_to_bitmatrix(struct jerasure_context *ctx, int k, int m, int *matrix);
 int **jerasure_dumb_bitmatrix_to_schedule(int k, int m, int w, int *bitmatrix);
 int **jerasure_smart_bitmatrix_to_schedule(int k, int m, int w, int *bitmatrix);
 int ***jerasure_generate_schedule_cache(int k, int m, int w, int *bitmatrix, int smart);
