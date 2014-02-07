@@ -114,12 +114,14 @@ int test1()
 	int *matrix;
 	int i, n;
 	int errors = 0;
+	struct jerasure_context *ctx;
 	for (tp = test1_data; tp->w; ++tp) {
+		ctx = jerasure_make_context(tp->w);
 		matrix = talloc(int, tp->r * tp->c);
 		n = 1;
 		for (i = 0; i < tp->r * tp->c; ++i) {
 			matrix[i] = n;
-			n = galois_single_multiply(n, 2, tp->w);
+			n = ctx->gf->multiply.w32(ctx->gf, n, 2);
 		}
 		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->r*tp->c))) {
 			++errors;
@@ -129,6 +131,7 @@ int test1()
 			jerasure_print_matrix(matrix, tp->r, tp->c, tp->w);
 		}
 		free(matrix);
+		jerasure_release_context(ctx);
 	}
 	if (errors) {
 		fprintf(stderr, "*** test1 %d errors\n", errors);
@@ -1404,12 +1407,15 @@ int test2()
 	int *matrix, *bitmatrix;
 	int i, n;
 	int errors = 0;
+	struct jerasure_context *ctx;
+
 	for (tp = test2_data; tp->w; ++tp) {
+		ctx = jerasure_make_context(tp->w);
 		matrix = talloc(int, tp->r * tp->c);
 		n = 1;
 		for (i = 0; i < tp->r * tp->c; ++i) {
 			matrix[i] = n;
-			n = galois_single_multiply(n, 2, tp->w);
+			n = ctx->gf->multiply.w32(ctx->gf, n, 2);
 		}
 		bitmatrix = jerasure_matrix_to_bitmatrix(tp->c, tp->r, tp->w, matrix);
 		if (memcmp(bitmatrix, tp->out, sizeof *bitmatrix * (tp->r*tp->c*tp->w*tp->w))) {
@@ -1421,6 +1427,7 @@ int test2()
 		}
 		free(bitmatrix);
 		free(matrix);
+		jerasure_release_context(ctx);
 	}
 	if (errors) {
 		fprintf(stderr, "*** test2 %d errors\n", errors);

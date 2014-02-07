@@ -88,6 +88,7 @@ int main(int argc, char **argv)
   int **smart, ***cache;
   int *erasures, *erased;
   double stats[3];
+  struct jerasure_context *ctx;
   
   if (argc != 3) usage(NULL);
   if (sscanf(argv[1], "%d", &k) == 0 || k <= 0) usage("Bad k");
@@ -95,12 +96,13 @@ int main(int argc, char **argv)
   m = 2;
   if (w < 30 && (k+m) > (1 << w)) usage("k + m is too big");
 
+  ctx = jerasure_make_context(w);
   matrix = talloc(int, m*k);
   for (j = 0; j < k; j++) matrix[j] = 1;
   i = 1;
   for (j = 0; j < k; j++) {
     matrix[k+j] = i;
-    i = galois_single_multiply(i, 2, w);
+    i = ctx->gf->multiply.w32(ctx->gf, i, 2);
   }
   bitmatrix = jerasure_matrix_to_bitmatrix(k, m, w, matrix);
 
@@ -179,6 +181,7 @@ int main(int argc, char **argv)
   free(data);
   free(bitmatrix);
   free(matrix);
+  jerasure_release_context(ctx);
 
   return 0;
 }
