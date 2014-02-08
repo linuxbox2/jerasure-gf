@@ -99,7 +99,7 @@ int main(int argc, char **argv)
   printf("The Cauchy Matrix:\n");
   jerasure_print_matrix(matrix, k, k, w);
   memcpy(matrix_copy, matrix, sizeof(int)*k*k);
-  i = jerasure_invertible_matrix(matrix_copy, k, w);
+  i = jerasure_invertible_matrix(ctx, matrix_copy, k);
   printf("\nInvertible: %s\n", (i == 1) ? "Yes" : "No");
   if (i == 1) {
     printf("\nInverse:\n");

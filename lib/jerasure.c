@@ -478,7 +478,7 @@ int jerasure_invert_matrix(struct jerasure_context *ctx, int *mat, int *inv, int
   return 0;
 }
 
-int jerasure_invertible_matrix(int *mat, int rows, int w)
+int jerasure_invertible_matrix(struct jerasure_context *ctx, int *mat, int rows)
 {
   int cols, i, j, k, x, rs2;
   int row_start, tmp, inverse;
@@ -506,9 +506,9 @@ int jerasure_invertible_matrix(int *mat, int rows, int w)
     /* Multiply the row by 1/element i,i  */
     tmp = mat[row_start+i];
     if (tmp != 1) {
-      inverse = galois_single_divide(1, tmp, w);
+      inverse = galois_single_divide(1, tmp, ctx->w);
       for (j = 0; j < cols; j++) { 
-        mat[row_start+j] = galois_single_multiply(mat[row_start+j], inverse, w);
+        mat[row_start+j] = ctx->gf->multiply.w32(ctx->gf, mat[row_start+j], inverse);
       }
     }
 
@@ -526,7 +526,7 @@ int jerasure_invertible_matrix(int *mat, int rows, int w)
           tmp = mat[k];
           rs2 = cols*j;
           for (x = 0; x < cols; x++) {
-            mat[rs2+x] ^= galois_single_multiply(tmp, mat[row_start+x], w);
+            mat[rs2+x] ^= galois_single_multiply(tmp, mat[row_start+x], ctx->w);
           }
         }
       }

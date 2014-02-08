@@ -263,7 +263,7 @@ void jerasure_do_scheduled_operations(char **ptrs, int **schedule, int packetsiz
 
 int jerasure_invert_matrix(struct jerasure_context *ctx, int *mat, int *inv, int rows);
 int jerasure_invert_bitmatrix(int *mat, int *inv, int rows);
-int jerasure_invertible_matrix(int *mat, int rows, int w);
+int jerasure_invertible_matrix(struct jerasure_context *ctx, int *mat, int rows);
 int jerasure_invertible_bitmatrix(int *mat, int rows);
 
 /* ------------------------------------------------------------ */
