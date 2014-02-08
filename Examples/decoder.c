@@ -312,7 +312,7 @@ int main (int argc, char **argv) {
 	
 		/* Choose proper decoding method */
 		if (tech == Reed_Sol_Van || tech == Reed_Sol_R6_Op) {
-			i = jerasure_matrix_decode(k, m, w, matrix, 1, erasures, data, coding, blocksize);
+			i = jerasure_matrix_decode(ctx, k, m, matrix, 1, erasures, data, coding, blocksize);
 		}
 		else if (tech == Cauchy_Orig || tech == Cauchy_Good || tech == Liberation || tech == Blaum_Roth || tech == Liber8tion) {
 			i = jerasure_schedule_decode_lazy(k, m, w, bitmatrix, erasures, data, coding, blocksize, packetsize, 1);

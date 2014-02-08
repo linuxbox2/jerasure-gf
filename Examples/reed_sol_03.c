@@ -82,6 +82,7 @@ int main(int argc, char **argv)
   char **data, **coding;
   int *erasures, *erased;
   int *decoding_matrix, *dm_ids;
+  struct jerasure_context *ctx;
   
   if (argc != 3) usage(NULL);
   if (sscanf(argv[1], "%d", &k) == 0 || k <= 0) usage("Bad k");
@@ -102,6 +103,7 @@ int main(int argc, char **argv)
     fillrand(data[i], sizeof(gdata));
   }
 
+  ctx = jerasure_make_context(w);
   coding = talloc(char *, m);
   for (i = 0; i < m; i++) {
     coding[i] = talloc(char, sizeof(gdata));
@@ -129,7 +131,7 @@ int main(int argc, char **argv)
   printf("Erased %d random devices:\n\n", m);
   print_data_and_coding_1(k, m, w, sizeof(gdata), data, coding);
   
-  i = jerasure_matrix_decode(k, m, w, matrix, 1, erasures, data, coding, sizeof(gdata));
+  i = jerasure_matrix_decode(ctx, k, m, matrix, 1, erasures, data, coding, sizeof(gdata));
 
   printf("State of the system after decoding:\n\n");
   print_data_and_coding_1(k, m, w, sizeof(gdata), data, coding);
@@ -145,6 +147,7 @@ int main(int argc, char **argv)
   }
   free(data);
   free(matrix);
+  jerasure_release_context(ctx);
 
   return 0;
 }

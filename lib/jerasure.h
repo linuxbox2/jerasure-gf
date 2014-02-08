@@ -189,7 +189,7 @@ void jerasure_schedule_encode(int k, int m, int w, int **schedule,
     
  */
 
-int jerasure_matrix_decode(int k, int m, int w, 
+int jerasure_matrix_decode(struct jerasure_context *ctx, int k, int m,
                           int *matrix, int row_k_ones, int *erasures,
                           char **data_ptrs, char **coding_ptrs, int size);
                           
@@ -204,7 +204,7 @@ int jerasure_schedule_decode_lazy(int k, int m, int w, int *bitmatrix, int *eras
 int jerasure_schedule_decode_cache(int k, int m, int w, int ***scache, int *erasures,
                             char **data_ptrs, char **coding_ptrs, int size, int packetsize);
 
-int jerasure_make_decoding_matrix(int k, int m, int w, int *matrix, int *erased, 
+int jerasure_make_decoding_matrix(struct jerasure_context *ctx, int k, int m, int *matrix, int *erased, 
                                   int *decoding_matrix, int *dm_ids);
 
 int jerasure_make_decoding_bitmatrix(int k, int m, int w, int *matrix, int *erased, 
@@ -261,7 +261,7 @@ void jerasure_do_scheduled_operations(char **ptrs, int **schedule, int packetsiz
    invertible.  (0 or 1). Mat will be destroyed.
  */
 
-int jerasure_invert_matrix(int *mat, int *inv, int rows, int w);
+int jerasure_invert_matrix(struct jerasure_context *ctx, int *mat, int *inv, int rows);
 int jerasure_invert_bitmatrix(int *mat, int *inv, int rows);
 int jerasure_invertible_matrix(int *mat, int rows, int w);
 int jerasure_invertible_bitmatrix(int *mat, int rows);

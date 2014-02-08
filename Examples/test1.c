@@ -1641,12 +1641,14 @@ int test5()
 	int *erasures, *erased;
 	int *decoding_matrix, *dm_ids;
 	LONG data_cksum, coding_cksum, sum;
+	struct jerasure_context *ctx;
 
 	for (tp = test5_data; tp->w; ++tp) {
 		failed = 0;
 		sprintf (label, "test5 case %d", 1+tp-test5_data);
 		sprintf (key, "jerasure_05 %d %d %d %d", tp->k, tp->m, tp->w, tp->s);
 		rc4_set_key(ks, strlen(key), key, 0);
+		ctx = jerasure_make_context(tp->w);
 		matrix = talloc(int, tp->m*tp->k);
 
 		for (i = 0; i < tp->m; ++i) {
@@ -1693,7 +1695,7 @@ int test5()
 			++i;
 		}
 		erasures[i] = -1;
-		i = jerasure_matrix_decode(tp->k, tp->m, tp->w,
+		i = jerasure_matrix_decode(ctx, tp->k, tp->m,
 			matrix, 0, erasures,
 			data, coding, tp->s);
 		if (i < 0) {
@@ -1727,7 +1729,7 @@ int test5()
 		for (; i < (tp->k + tp->m); ++i)
 			erased[i] = 0;
 
-		jerasure_make_decoding_matrix(tp->k, tp->m, tp->w,
+		jerasure_make_decoding_matrix(ctx, tp->k, tp->m,
 			matrix, erased, decoding_matrix, dm_ids);
 		if (memcmp(tp->decoding, decoding_matrix, sizeof *decoding_matrix * tp->k*tp->k)) {
 			failed = 1;
@@ -1782,6 +1784,8 @@ int test5()
 		free(saved_data0);
 		free(data);
 		free(matrix);
+		jerasure_release_context(ctx);
+
 		errors += failed;
 	}
 	return errors;
@@ -2380,6 +2384,7 @@ test9()
 	int *erasures, *erased;
 	int *decoding_matrix, *dm_ids;
 	LONG data_cksum, coding_cksum, sum;
+	struct jerasure_context *ctx;
 
 	for (tp = test9_data; tp->w; ++tp) {
 		failed = 0;
@@ -2388,6 +2393,7 @@ test9()
 			tp->k, tp->m, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
+		ctx = jerasure_make_context(tp->w);
 		matrix = reed_sol_vandermonde_coding_matrix(tp->k, tp->m, tp->w);
 
 		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->m*tp->k))) {
@@ -2429,7 +2435,7 @@ test9()
 		}
 		erasures[i] = -1;
 
-		i = jerasure_matrix_decode(tp->k, tp->m, tp->w, matrix, 1, erasures, data, coding, sizeof(gdata));
+		i = jerasure_matrix_decode(ctx, tp->k, tp->m, matrix, 1, erasures, data, coding, sizeof(gdata));
 		if (i < 0) {
 			failed = 1;
 			printf ("%s: %s: matrix_decode failed?\n",
@@ -2467,6 +2473,7 @@ Dm:
 		}
 		free(data);
 		free(matrix);
+		jerasure_release_context(ctx);
 		errors += failed;
 	}
 	return errors;
@@ -2601,6 +2608,7 @@ test11()
 	int *erasures, *erased;
 	int *decoding_matrix, *dm_ids;
 	LONG data_cksum, coding_cksum, sum;
+	struct jerasure_context *ctx;
 
 	for (tp = test11_data; tp->w; ++tp) {
 		failed = 0;
@@ -2609,6 +2617,7 @@ test11()
 			tp->k, tp->m, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
+		ctx = jerasure_make_context(tp->w);
 		matrix = reed_sol_r6_coding_matrix(tp->k, tp->w);
 
 		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->m*tp->k))) {
@@ -2650,7 +2659,7 @@ test11()
 		}
 		erasures[i] = -1;
 
-		i = jerasure_matrix_decode(tp->k, tp->m, tp->w, matrix, 1, erasures, data, coding, sizeof(gdata));
+		i = jerasure_matrix_decode(ctx, tp->k, tp->m, matrix, 1, erasures, data, coding, sizeof(gdata));
 		if (i < 0) {
 			failed = 1;
 			printf ("%s: %s: matrix_decode failed?\n",
@@ -2688,6 +2697,7 @@ Dm:
 		}
 		free(data);
 		free(matrix);
+		jerasure_release_context(ctx);
 		errors += failed;
 	}
 	return errors;

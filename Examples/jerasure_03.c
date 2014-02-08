@@ -104,7 +104,7 @@ int main(int argc, char **argv)
   if (i == 1) {
     printf("\nInverse:\n");
     memcpy(matrix_copy, matrix, sizeof(int)*k*k);
-    i = jerasure_invert_matrix(matrix_copy, inverse, k, w);
+    i = jerasure_invert_matrix(ctx, matrix_copy, inverse, k);
     jerasure_print_matrix(inverse, k, k, w);
     identity = jerasure_matrix_multiply(ctx, inverse, matrix, k, k, k, k);
     printf("\nInverse times matrix (should be identity):\n");

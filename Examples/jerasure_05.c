@@ -83,6 +83,7 @@ int main(int argc, char **argv)
   char **data, **coding;
   int *erasures, *erased;
   int *decoding_matrix, *dm_ids;
+  struct jerasure_context *ctx;
   
   if (argc != 5) usage(NULL);
   if (sscanf(argv[1], "%d", &k) == 0 || k <= 0) usage("Bad k");
@@ -93,6 +94,7 @@ int main(int argc, char **argv)
   if (sscanf(argv[4], "%d", &size) == 0 || size % sizeof(gdata) != 0) 
 		usage("size must be multiple of sizeof(gdata)");
 
+  ctx = jerasure_make_context(w);
   matrix = talloc(int, m*k);
   for (i = 0; i < m; i++) {
     for (j = 0; j < k; j++) {
@@ -139,7 +141,7 @@ int main(int argc, char **argv)
   printf("Erased %d random devices:\n\n", m);
   print_data_and_coding_1(k, m, w, size, data, coding);
   
-  i = jerasure_matrix_decode(k, m, w, matrix, 0, erasures, data, coding, size);
+  i = jerasure_matrix_decode(ctx, k, m, matrix, 0, erasures, data, coding, size);
 
   printf("State of the system after decoding:\n\n");
   print_data_and_coding_1(k, m, w, size, data, coding);
@@ -150,7 +152,7 @@ int main(int argc, char **argv)
   for (i = 0; i < m; i++) erased[i] = 1;
   for (; i < k+m; i++) erased[i] = 0;
 
-  jerasure_make_decoding_matrix(k, m, w, matrix, erased, decoding_matrix, dm_ids);
+  jerasure_make_decoding_matrix(ctx, k, m, matrix, erased, decoding_matrix, dm_ids);
 
   printf("Suppose we erase the first %d devices.  Here is the decoding matrix:\n\n", m);
   jerasure_print_matrix(decoding_matrix, k, k, w);
@@ -184,6 +186,7 @@ int main(int argc, char **argv)
   }
   free(data);
   free(matrix);
+  jerasure_release_context(ctx);
 
   return 0;
 }
