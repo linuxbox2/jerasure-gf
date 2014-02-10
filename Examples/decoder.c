@@ -214,7 +214,7 @@ int main (int argc, char **argv) {
 			matrix = reed_sol_vandermonde_coding_matrix(k, m, w);
 			break;
 		case Reed_Sol_R6_Op:
-			matrix = reed_sol_r6_coding_matrix(k, w);
+			matrix = reed_sol_r6_coding_matrix(ctx, k);
 			break;
 		case Cauchy_Orig:
 			matrix = cauchy_original_coding_matrix(k, m, w);

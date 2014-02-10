@@ -2618,7 +2618,7 @@ test11()
 		rc4_set_key(ks, strlen(key), key, 0);
 
 		ctx = jerasure_make_context(tp->w);
-		matrix = reed_sol_r6_coding_matrix(tp->k, tp->w);
+		matrix = reed_sol_r6_coding_matrix(ctx, tp->k);
 
 		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->m*tp->k))) {
 			failed = 1;

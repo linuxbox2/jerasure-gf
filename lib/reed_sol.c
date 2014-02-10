@@ -56,12 +56,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define talloc(type, num) (type *) malloc(sizeof(type)*(num))
 
-int *reed_sol_r6_coding_matrix(int k, int w)
+int *reed_sol_r6_coding_matrix(struct jerasure_context *ctx, int k)
 {
   int *matrix;
   int i, tmp;
 
-  if (w != 8 && w != 16 && w != 32) return NULL;
+  if (ctx->w != 8 && ctx->w != 16 && ctx->w != 32) return NULL;
 
   matrix = talloc(int, 2*k);
   if (matrix == NULL) return NULL;
@@ -70,7 +70,7 @@ int *reed_sol_r6_coding_matrix(int k, int w)
   matrix[k] = 1;
   tmp = 1;
   for (i = 1; i < k; i++) {
-    tmp = galois_single_multiply(tmp, 2, w);
+    tmp = ctx->gf->multiply.w32(ctx->gf, tmp, 2);
     matrix[k+i] = tmp;
   }
   return matrix;

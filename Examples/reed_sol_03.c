@@ -90,7 +90,7 @@ int main(int argc, char **argv)
   m = 2;
   if (w <= 16 && k + m > (1 << w)) usage("k + m is too big");
 
-  matrix = reed_sol_r6_coding_matrix(k, w);
+  matrix = reed_sol_r6_coding_matrix(ctx, k);
 
   printf("Last 2 rows of the Distribution Matrix:\n\n");
   jerasure_print_matrix(matrix, m, k, w);
