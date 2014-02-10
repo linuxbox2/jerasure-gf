@@ -526,7 +526,7 @@ int jerasure_invertible_matrix(struct jerasure_context *ctx, int *mat, int rows)
           tmp = mat[k];
           rs2 = cols*j;
           for (x = 0; x < cols; x++) {
-            mat[rs2+x] ^= galois_single_multiply(tmp, mat[row_start+x], ctx->w);
+            mat[rs2+x] ^= ctx->gf->multiply.w32(ctx->gf, tmp, mat[row_start+x]);
           }
         }
       }
