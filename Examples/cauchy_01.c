@@ -82,7 +82,7 @@ int main(int argc, char **argv)
   no = 0;
   for (i = 0; i < w*w; i++) no += bitmatrix[i];
 
-  printf("# Ones: %d\n", cauchy_n_ones(n, w));
+  printf("# Ones: %d\n", cauchy_n_ones(ctx, n));
   printf("\n");
   printf("Bitmatrix has %d ones\n", no);
   printf("\n");

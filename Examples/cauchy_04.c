@@ -98,14 +98,14 @@ int main(int argc, char **argv)
   if (w < 30 && (k+m) > (1 << w)) usage("k + m is too big");
 
   ctx = jerasure_make_context(w);
-  matrix = cauchy_good_general_coding_matrix(k, m, w);
+  matrix = cauchy_good_general_coding_matrix(ctx, k, m);
   if (matrix == NULL) {
     usage("couldn't make coding matrix");
   }
 
   no = 0;
   for (i = 0; i < k*m; i++) {
-    no += cauchy_n_ones(matrix[i], w);
+    no += cauchy_n_ones(ctx, matrix[i]);
   }
   printf("Matrix has %d ones\n\n", no);
   jerasure_print_matrix(matrix, m, k, w);

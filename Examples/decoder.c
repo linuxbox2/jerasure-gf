@@ -221,7 +221,7 @@ int main (int argc, char **argv) {
 			bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 			break;
 		case Cauchy_Good:
-			matrix = cauchy_good_general_coding_matrix(k, m, w);
+			matrix = cauchy_good_general_coding_matrix(ctx, k, m);
 			bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 			break;
 		case Liberation:

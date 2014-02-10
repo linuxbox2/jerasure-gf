@@ -146,7 +146,7 @@ static const int * const cbest_all[33] = {
 
 #define talloc(type, num) (type *) malloc(sizeof(type)*(num))
 
-int cauchy_n_ones(int n, int w)
+int cauchy_n_ones(struct jerasure_context *ctx, int n)
 {
   int no;
   int cno;
@@ -154,31 +154,31 @@ int cauchy_n_ones(int n, int w)
   int i, j;
   int highbit;
 
-  highbit = (1 << (w-1));
+  highbit = (1 << (ctx->w-1));
 
-  if (PPs[w] == -1) {
+  if (PPs[ctx->w] == -1) {
     nones = 0;
-    PPs[w] = galois_single_multiply(highbit, 2, w);
-    for (i = 0; i < w; i++) {
-      if (PPs[w] & (1 << i)) {
-        ONEs[w][nones] = (1 << i);
+    PPs[ctx->w] = ctx->gf->multiply.w32(ctx->gf, highbit, 2);
+    for (i = 0; i < ctx->w; i++) {
+      if (PPs[ctx->w] & (1 << i)) {
+        ONEs[ctx->w][nones] = (1 << i);
         nones++;
       }
     }
-    NOs[w] = nones;
+    NOs[ctx->w] = nones;
   }
 
   no = 0;
-  for (i = 0; i < w; i++) if (n & (1 << i)) no++;
+  for (i = 0; i < ctx->w; i++) if (n & (1 << i)) no++;
   cno = no;
-  for (i = 1; i < w; i++) {
+  for (i = 1; i < ctx->w; i++) {
     if (n & highbit) {
       n ^= highbit;
       n <<= 1;
-      n ^= PPs[w];
+      n ^= PPs[ctx->w];
       cno--;
-      for (j = 0; j < NOs[w]; j++) {
-        cno += (n & ONEs[w][j]) ? 1 : -1;
+      for (j = 0; j < NOs[ctx->w]; j++) {
+        cno += (n & ONEs[ctx->w][j]) ? 1 : -1;
       }
     } else {
       n <<= 1;
@@ -223,7 +223,7 @@ int *cauchy_xy_coding_matrix(int k, int m, int w, int *X, int *Y)
   return matrix;
 }
 
-void cauchy_improve_coding_matrix(int k, int m, int w, int *matrix)
+void cauchy_improve_coding_matrix(struct jerasure_context *ctx, int k, int m, int *matrix)
 {
   int index, i, j, x;
   int tmp;
@@ -231,10 +231,10 @@ void cauchy_improve_coding_matrix(int k, int m, int w, int *matrix)
 
   for (j = 0; j < k; j++) {
     if (matrix[j] != 1) {
-      tmp = galois_single_divide(1, matrix[j], w);
+      tmp = galois_single_divide(1, matrix[j], ctx->w);
       index = j;
       for (i = 0; i < m; i++) {
-        matrix[index] = galois_single_multiply(matrix[index], tmp, w);
+        matrix[index] = ctx->gf->multiply.w32(ctx->gf, matrix[index], tmp);
         index += k;
       }
     }
@@ -242,14 +242,14 @@ void cauchy_improve_coding_matrix(int k, int m, int w, int *matrix)
   for (i = 1; i < m; i++) {
     bno = 0;
     index = i*k;
-    for (j = 0; j < k; j++) bno += cauchy_n_ones(matrix[index+j], w);
+    for (j = 0; j < k; j++) bno += cauchy_n_ones(ctx, matrix[index+j]);
     bno_index = -1;
     for (j = 0; j < k; j++) {
       if (matrix[index+j] != 1) {
-        tmp = galois_single_divide(1, matrix[index+j], w);
+        tmp = galois_single_divide(1, matrix[index+j], ctx->w);
         tno = 0;
         for (x = 0; x < k; x++) {
-          tno += cauchy_n_ones(galois_single_multiply(matrix[index+x], tmp, w), w);
+          tno += cauchy_n_ones(ctx, ctx->gf->multiply.w32(ctx->gf, matrix[index+x], tmp));
         }
         if (tno < bno) {
           bno = tno;
@@ -258,30 +258,30 @@ void cauchy_improve_coding_matrix(int k, int m, int w, int *matrix)
       }
     }
     if (bno_index != -1) {
-      tmp = galois_single_divide(1, matrix[index+bno_index], w);
+      tmp = galois_single_divide(1, matrix[index+bno_index], ctx->w);
       for (j = 0; j < k; j++) {
-        matrix[index+j] = galois_single_multiply(matrix[index+j], tmp, w);
+        matrix[index+j] = ctx->gf->multiply.w32(ctx->gf, matrix[index+j], tmp);
       }
     }
   }
 }
 
-int *cauchy_good_general_coding_matrix(int k, int m, int w)
+int *cauchy_good_general_coding_matrix(struct jerasure_context *ctx, int k, int m)
 {
   int *matrix, i;
 
-  if (m == 2 && k <= cbest_max_k[w]) {
+  if (m == 2 && k <= cbest_max_k[ctx->w]) {
     matrix = talloc(int, k*m);
     if (matrix == NULL) return NULL;
     for (i = 0; i < k; i++) {
       matrix[i] = 1;
-      matrix[i+k] = cbest_all[w][i];
+      matrix[i+k] = cbest_all[ctx->w][i];
     }
     return matrix;
   } else {
-    matrix = cauchy_original_coding_matrix(k, m, w);
+    matrix = cauchy_original_coding_matrix(k, m, ctx->w);
     if (matrix == NULL) return NULL;
-    cauchy_improve_coding_matrix(k, m, w, matrix);
+    cauchy_improve_coding_matrix(ctx, k, m, matrix);
     return matrix;
   }
 }

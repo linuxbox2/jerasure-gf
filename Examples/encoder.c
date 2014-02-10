@@ -446,7 +446,7 @@ int main (int argc, char **argv) {
 			schedule = jerasure_smart_bitmatrix_to_schedule(k, m, w, bitmatrix);
 			break;
 		case Cauchy_Good:
-			matrix = cauchy_good_general_coding_matrix(k, m, w);
+			matrix = cauchy_good_general_coding_matrix(ctx, k, m);
 			bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 			schedule = jerasure_smart_bitmatrix_to_schedule(k, m, w, bitmatrix);
 			break;	

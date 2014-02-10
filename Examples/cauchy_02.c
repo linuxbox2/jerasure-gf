@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
   no = 0;
   for (i = 0; i < k*m; i++) {
-    no += cauchy_n_ones(matrix[i], w);
+    no += cauchy_n_ones(ctx, matrix[i]);
   }
   printf("Matrix has %d ones\n\n", no);
   jerasure_print_matrix(matrix, m, k, w);

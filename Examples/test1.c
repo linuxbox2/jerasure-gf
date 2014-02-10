@@ -2871,7 +2871,7 @@ test13()
 			printf ("%s: bitmatrix results differ\n", label);
 		}
 		if (failed) {
-			printf("# Ones: %d\n", cauchy_n_ones(tp->n, tp->w));
+			printf("# Ones: %d\n", cauchy_n_ones(ctx, tp->n));
 			printf("\n");
 			printf("Bitmatrix has %d ones\n", no);
 			printf("\n");
@@ -2950,7 +2950,7 @@ test14()
 
 		no = 0;
 		for (i = 0; i < tp->k*tp->m; i++) {
-			no += cauchy_n_ones(matrix[i], tp->w);
+			no += cauchy_n_ones(ctx, matrix[i]);
 		}
 		if (tp->no != no) {
 			failed |= 2;
@@ -3127,16 +3127,16 @@ test15()
 
 		no = 0;
 		for (i = 0; i < tp->k*tp->m; i++) {
-			no += cauchy_n_ones(matrix[i], tp->w);
+			no += cauchy_n_ones(ctx, matrix[i]);
 		}
 		if (tp->no != no) {
 			failed |= 2;
 			printf("%s: matrix has %d ones, expected %d\n", no, tp->no);
 		}
-		cauchy_improve_coding_matrix(tp->k, tp->m, tp->w, matrix);
+		cauchy_improve_coding_matrix(ctx, tp->k, tp->m, matrix);
 		no = 0;
 		for (i = 0; i < tp->k*tp->m; i++) {
-			no += cauchy_n_ones(matrix[i], tp->w);
+			no += cauchy_n_ones(ctx, matrix[i]);
 		}
 		if (tp->imp != no) {
 			failed |= 2;
@@ -3283,7 +3283,7 @@ test16()
 		rc4_set_key(ks, strlen(key), key, 0);
 
 		ctx = jerasure_make_context(tp->w);
-		matrix = cauchy_good_general_coding_matrix(tp->k, tp->m, tp->w);
+		matrix = cauchy_good_general_coding_matrix(ctx, tp->k, tp->m);
 		if (!matrix) {
 			failed |= 1;
 			printf ("%s: bad ones count: expected %d got %d\n",
@@ -3293,7 +3293,7 @@ test16()
 
 		no = 0;
 		for (i = 0; i < tp->k*tp->m; i++) {
-			no += cauchy_n_ones(matrix[i], tp->w);
+			no += cauchy_n_ones(ctx, matrix[i]);
 		}
 		if (tp->no != no) {
 			failed |= 2;
