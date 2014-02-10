@@ -2394,7 +2394,7 @@ test9()
 		rc4_set_key(ks, strlen(key), key, 0);
 
 		ctx = jerasure_make_context(tp->w);
-		matrix = reed_sol_vandermonde_coding_matrix(tp->k, tp->m, tp->w);
+		matrix = reed_sol_vandermonde_coding_matrix(ctx, tp->k, tp->m);
 
 		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->m*tp->k))) {
 			failed = 1;
@@ -2528,6 +2528,7 @@ test10()
 	int errors = 0;
 	char label[80];
 	char key[80];
+	struct jerasure_context *ctx;
 
 	for (tp = test10_data; tp->w; ++tp) {
 		failed = 0;
@@ -2535,8 +2536,9 @@ test10()
 		sprintf (key, "reed_sol_02 %d %d %d",
 			tp->k, tp->m, tp->w);
 
-		matrix = reed_sol_extended_vandermonde_matrix(tp->k+tp->m,
-			tp->k, tp->w);
+		ctx = jerasure_make_context(tp->w);
+		matrix = reed_sol_extended_vandermonde_matrix(ctx, tp->k+tp->m,
+			tp->k);
 		if (memcmp(matrix, tp->ext, sizeof *matrix * (tp->m*tp->k))) {
 			failed = 1;
 			printf ("%s EXPECTED\n", label);
@@ -2547,8 +2549,8 @@ test10()
 		/* free data to avoid false positives for leak testing */
 		free(matrix);
 
-		matrix = reed_sol_big_vandermonde_distribution_matrix(tp->k+tp->m,
-			tp->k, tp->w);
+		matrix = reed_sol_big_vandermonde_distribution_matrix(ctx, tp->k+tp->m,
+			tp->k);
 		if (memcmp(matrix, tp->dist, sizeof *matrix * (tp->m*tp->k))) {
 			failed = 1;
 			printf ("%s EXPECTED\n", label);
@@ -2559,7 +2561,7 @@ test10()
 		/* free data to avoid false positives for leak testing */
 		free(matrix);
 
-		matrix = reed_sol_vandermonde_coding_matrix(tp->k, tp->m, tp->w);
+		matrix = reed_sol_vandermonde_coding_matrix(ctx, tp->k, tp->m);
 		if (memcmp(matrix, tp->out, sizeof *matrix * (tp->m*tp->k))) {
 			failed = 1;
 			printf ("%s EXPECTED\n", label);
@@ -2569,6 +2571,7 @@ test10()
 		}
 		/* free data to avoid false positives for leak testing */
 		free(matrix);
+		jerasure_release_context(ctx);
 
 		if (failed)
 			printf ("%s failed: %s\n", label, key);

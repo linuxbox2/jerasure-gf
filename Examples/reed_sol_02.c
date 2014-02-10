@@ -74,6 +74,7 @@ int main(int argc, char **argv)
   gdata l;
   int k, w, i, j, m;
   int *matrix;
+  struct jerasure_context *ctx;
   
   if (argc != 4) usage(NULL);
   if (sscanf(argv[1], "%d", &k) == 0 || k <= 0) usage("Bad k");
@@ -81,23 +82,25 @@ int main(int argc, char **argv)
   if (sscanf(argv[3], "%d", &w) == 0 || w <= 0 || w > 32) usage("Bad w");
   if (w <= 30 && k + m > (1 << w)) usage("k + m is too big");
 
-  matrix = reed_sol_extended_vandermonde_matrix(k+m, k, w);
+  ctx = jerasure_make_context(w);
+  matrix = reed_sol_extended_vandermonde_matrix(ctx, k+m, k);
   printf("Extended Vandermonde Matrix:\n\n");
   jerasure_print_matrix(matrix, k+m, k, w);
   printf("\n");
   free(matrix);	/* free for leak testing */
 
-  matrix = reed_sol_big_vandermonde_distribution_matrix(k+m, k, w);
+  matrix = reed_sol_big_vandermonde_distribution_matrix(ctx, k+m, k);
   printf("Vandermonde Distribution Matrix:\n\n");
   jerasure_print_matrix(matrix, k+m, k, w);
   printf("\n");
   free(matrix);	/* free for leak testing */
 
-  matrix = reed_sol_vandermonde_coding_matrix(k, m, w);
+  matrix = reed_sol_vandermonde_coding_matrix(ctx, k, m);
   printf("Vandermonde Coding Matrix:\n\n");
   jerasure_print_matrix(matrix, m, k, w);
   printf("\n");
   free(matrix);	/* free for leak testing */
+  jerasure_release_context(ctx);
 
   
   return 0;

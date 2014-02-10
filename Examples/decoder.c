@@ -211,7 +211,7 @@ int main (int argc, char **argv) {
 		case No_Coding:
 			break;
 		case Reed_Sol_Van:
-			matrix = reed_sol_vandermonde_coding_matrix(k, m, w);
+			matrix = reed_sol_vandermonde_coding_matrix(ctx, k, m);
 			break;
 		case Reed_Sol_R6_Op:
 			matrix = reed_sol_r6_coding_matrix(ctx, k);
