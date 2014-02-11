@@ -430,7 +430,7 @@ int jerasure_invert_matrix(struct jerasure_context *ctx, int *mat, int *inv, int
     /* Multiply the row by 1/element i,i  */
     tmp = mat[row_start+i];
     if (tmp != 1) {
-      inverse = galois_single_divide(1, tmp, ctx->w);
+      inverse = ctx->gf->divide.w32(ctx->gf, 1, tmp);
       for (j = 0; j < cols; j++) { 
         mat[row_start+j] = ctx->gf->multiply.w32(ctx->gf, mat[row_start+j], inverse);
         inv[row_start+j] = ctx->gf->multiply.w32(ctx->gf, inv[row_start+j], inverse);
@@ -506,7 +506,7 @@ int jerasure_invertible_matrix(struct jerasure_context *ctx, int *mat, int rows)
     /* Multiply the row by 1/element i,i  */
     tmp = mat[row_start+i];
     if (tmp != 1) {
-      inverse = galois_single_divide(1, tmp, ctx->w);
+      inverse = ctx->gf->divide.w32(ctx->gf, 1, tmp);
       for (j = 0; j < cols; j++) { 
         mat[row_start+j] = ctx->gf->multiply.w32(ctx->gf, mat[row_start+j], inverse);
       }

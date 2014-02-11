@@ -307,7 +307,7 @@ int *reed_sol_big_vandermonde_distribution_matrix(struct jerasure_context *ctx, 
     /* If Element i,i is not equal to 1, multiply the column by 1/i */
 
     if (dist[sindex+i] != 1) {
-      tmp = galois_single_divide(1, dist[sindex+i], ctx->w);
+      tmp = ctx->gf->divide.w32(ctx->gf, 1, dist[sindex+i]);
       srindex = i;
       for (j = 0; j < rows; j++) {
         dist[srindex] = ctx->gf->multiply.w32(ctx->gf, tmp, dist[srindex]);
@@ -341,7 +341,7 @@ int *reed_sol_big_vandermonde_distribution_matrix(struct jerasure_context *ctx, 
   for (j = 0; j < cols; j++) {
     tmp = dist[sindex];
     if (tmp != 1) { 
-      tmp = galois_single_divide(1, tmp, ctx->w);
+      tmp = ctx->gf->divide.w32(ctx->gf, 1, tmp);
       srindex = sindex;
       for (i = cols; i < rows; i++) {
         dist[srindex] = ctx->gf->multiply.w32(ctx->gf, tmp, dist[srindex]);
@@ -358,7 +358,7 @@ int *reed_sol_big_vandermonde_distribution_matrix(struct jerasure_context *ctx, 
   for (i = cols+1; i < rows; i++) {
     tmp = dist[sindex];
     if (tmp != 1) { 
-      tmp = galois_single_divide(1, tmp, ctx->w);
+      tmp = ctx->gf->divide.w32(ctx->gf, 1, tmp);
       for (j = 0; j < cols; j++) dist[sindex+j] = ctx->gf->multiply.w32(ctx->gf, dist[sindex+j], tmp);
     }
     sindex += cols;
