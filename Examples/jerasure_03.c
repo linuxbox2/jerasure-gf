@@ -92,7 +92,7 @@ int main(int argc, char **argv)
   for (i = 0; i < k; i++) {
     for (j = 0; j < k; j++) {
       n = i ^ ((1 << w)-1-j);
-      matrix[i*k+j] = (n == 0) ? 0 : galois_single_divide(1, n, w);
+      matrix[i*k+j] = (n == 0) ? 0 : ctx->gf->divide.w32(ctx->gf, 1, n);
     }
   }
 

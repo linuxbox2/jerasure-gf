@@ -1529,7 +1529,7 @@ int test4()
 		for (i = 0; i < tp->k; ++i) {
 			for (j = 0; j < tp->k; ++j) {
 				n = i ^ ((1 << tp->w)-1-j);
-				matrix[i*tp->k+j] = (n == 0) ? 0 : galois_single_divide(1, n, tp->w);
+				matrix[i*tp->k+j] = (n == 0) ? 0 : ctx->gf->divide.w32(ctx->gf, 1, n);
 			}
 		}
 		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->k, matrix);
@@ -1653,7 +1653,7 @@ int test5()
 
 		for (i = 0; i < tp->m; ++i) {
 			for (j = 0; j < tp->k; ++j) {
-				matrix[i*tp->k+j] = galois_single_divide(1, i ^ (tp->m + j), tp->w);
+				matrix[i*tp->k+j] = ctx->gf->divide.w32(ctx->gf, 1, i ^ (tp->m + j));
 			}
 		}
 		data = talloc(char *, tp->k);
@@ -1847,7 +1847,7 @@ int test6()
 		matrix = talloc(int, tp->m*tp->k);
 		for (i = 0; i < tp->m; ++i) {
 			for (j = 0; j < tp->k; ++j) {
-				matrix[i*tp->k+j] = galois_single_divide(1, i ^ (tp->m + j), tp->w);
+				matrix[i*tp->k+j] = ctx->gf->divide.w32(ctx->gf, 1, i ^ (tp->m + j));
 			}
 		}
 		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->m, matrix);
@@ -2048,7 +2048,7 @@ int test7()
 		matrix = talloc(int, tp->m*tp->k);
 		for (i = 0; i < tp->m; ++i) {
 			for (j = 0; j < tp->k; ++j) {
-				matrix[i*tp->k+j] = galois_single_divide(1, i ^ (tp->m + j), tp->w);
+				matrix[i*tp->k+j] = ctx->gf->divide.w32(ctx->gf, 1, i ^ (tp->m + j));
 			}
 		}
 		bitmatrix = jerasure_matrix_to_bitmatrix(ctx, tp->k, tp->m, matrix);
@@ -2730,6 +2730,7 @@ test12()
 	char key[80];
 	unsigned foo;
 	rc4_key_schedule ks[1];
+	struct jerasure_context *ctx;
 
 	for (tp = test12_data; tp->w; ++tp) {
 		failed = 0;
@@ -2737,6 +2738,7 @@ test12()
 		sprintf (key, "reed_sol_04 %d", tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
+		ctx = jerasure_make_context(tp->w);
 		a32 = talloc(int, 4);
 		copy = talloc(int, 4);
 		reversed = talloc(int, 4);
@@ -2750,7 +2752,7 @@ test12()
 			rb = (unsigned char *) reversed;
 			reed_sol_galois_w08_region_multby_2((char *) a32, sizeof(int)*4);
 			for (i = 0; i < 4*sizeof(int)/sizeof(char); i++) {
-				rb[i] = galois_single_divide(y[i], 2, tp->w);
+				rb[i] = ctx->gf->divide.w32(ctx->gf, y[i], 2);
 			}
 			if (memcmp(copy, reversed, sizeof *reversed*4)) {
 				failed = 1;
@@ -2767,7 +2769,7 @@ test12()
 			rs = (unsigned short *) reversed;
 			reed_sol_galois_w16_region_multby_2((char *) a32, sizeof(int)*4);
 			for (i = 0; i < 4*sizeof(int)/sizeof(short); i++) {
-				rs[i] = galois_single_divide(ys[i], 2, tp->w);
+				rs[i] = ctx->gf->divide.w32(ctx->gf, ys[i], 2);
 			}
 			if (memcmp(copy, reversed, sizeof *reversed*4)) {
 				failed = 1;
@@ -2784,7 +2786,7 @@ test12()
 			ri = (unsigned int *) reversed;
 			reed_sol_galois_w32_region_multby_2((char *) a32, sizeof(int)*4);
 			for (i = 0; i < 4*sizeof(int)/sizeof(int); i++) {
-				ri[i] = galois_single_divide(yi[i], 2, tp->w);
+				ri[i] = ctx->gf->divide.w32(ctx->gf, yi[i], 2);
 			}
 			if (memcmp(copy, reversed, sizeof *reversed*4)) {
 				failed = 1;
@@ -2803,6 +2805,7 @@ test12()
 		free(reversed);
 		free(copy);
 		free(a32);
+		jerasure_release_context(ctx);
 
 		if (failed)
 			printf ("%s failed: %s\n", label, key);

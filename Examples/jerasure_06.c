@@ -96,7 +96,7 @@ int main(int argc, char **argv)
   matrix = talloc(int, m*k);
   for (i = 0; i < m; i++) {
     for (j = 0; j < k; j++) {
-      matrix[i*k+j] = galois_single_divide(1, i ^ (m + j), w);
+      matrix[i*k+j] = ctx->gf->divide.w32(ctx->gf, 1, i ^ (m + j));
     }
   }
   bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
