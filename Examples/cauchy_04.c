@@ -68,6 +68,7 @@ usage(char *s)
   fprintf(stderr, "       k devices of w*%d bytes using smart bit-matrix scheduling.\n", sizeof(gdata));
   fprintf(stderr, "       It decodes using bit-matrix scheduling as well.\n");
   fprintf(stderr, "       \n");
+/* XXX does NOT demonstrate cauchy_original_coding_matrix */
   fprintf(stderr, "This demonstrates: cauchy_original_coding_matrix()\n");
   fprintf(stderr, "                   cauchy_n_ones()\n");
   fprintf(stderr, "                   jerasure_smart_bitmatrix_to_schedule()\n");

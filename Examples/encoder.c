@@ -441,7 +441,7 @@ int main (int argc, char **argv) {
 			matrix = reed_sol_vandermonde_coding_matrix(ctx, k, m);
 			break;
 		case Cauchy_Orig:
-			matrix = cauchy_original_coding_matrix(k, m, w);
+			matrix = cauchy_original_coding_matrix(ctx, k, m);
 			bitmatrix = jerasure_matrix_to_bitmatrix(ctx, k, m, matrix);
 			schedule = jerasure_smart_bitmatrix_to_schedule(k, m, w, bitmatrix);
 			break;

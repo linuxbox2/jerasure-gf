@@ -2943,7 +2943,7 @@ test14()
 		rc4_set_key(ks, strlen(key), key, 0);
 
 		ctx = jerasure_make_context(tp->w);
-		matrix = cauchy_original_coding_matrix(tp->k, tp->m, tp->w);
+		matrix = cauchy_original_coding_matrix(ctx, tp->k, tp->m);
 		if (!matrix) {
 			failed |= 1;
 			printf ("%s: bad ones count: expected %d got %d\n",
@@ -3120,7 +3120,7 @@ test15()
 		rc4_set_key(ks, strlen(key), key, 0);
 
 		ctx = jerasure_make_context(tp->w);
-		matrix = cauchy_original_coding_matrix(tp->k, tp->m, tp->w);
+		matrix = cauchy_original_coding_matrix(ctx, tp->k, tp->m);
 		if (!matrix) {
 			failed |= 1;
 			printf ("%s: bad ones count: expected %d got %d\n",

@@ -188,18 +188,18 @@ int cauchy_n_ones(struct jerasure_context *ctx, int n)
   return no;
 }
   
-int *cauchy_original_coding_matrix(int k, int m, int w)
+int *cauchy_original_coding_matrix(struct jerasure_context *ctx, int k, int m)
 {
   int *matrix;
   int i, j, index;
 
-  if (w < 31 && (k+m) > (1 << w)) return NULL;
+  if (ctx->w < 31 && (k+m) > (1 << ctx->w)) return NULL;
   matrix = talloc(int, k*m);
   if (matrix == NULL) return NULL;
   index = 0;
   for (i = 0; i < m; i++) {
     for (j = 0; j < k; j++) {
-      matrix[index] = galois_single_divide(1, (i ^ (m+j)), w);
+      matrix[index] = ctx->gf->divide.w32(ctx->gf, 1, (i ^ (m+j)));
       index++;
     }
   }
@@ -279,7 +279,7 @@ int *cauchy_good_general_coding_matrix(struct jerasure_context *ctx, int k, int 
     }
     return matrix;
   } else {
-    matrix = cauchy_original_coding_matrix(k, m, ctx->w);
+    matrix = cauchy_original_coding_matrix(ctx, k, m);
     if (matrix == NULL) return NULL;
     cauchy_improve_coding_matrix(ctx, k, m, matrix);
     return matrix;

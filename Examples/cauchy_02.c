@@ -96,7 +96,7 @@ int main(int argc, char **argv)
   if (w < 30 && (k+m) > (1 << w)) usage("k + m is too big");
 
   ctx = jerasure_make_context(w);
-  matrix = cauchy_original_coding_matrix(k, m, w);
+  matrix = cauchy_original_coding_matrix(ctx, k, m);
   if (matrix == NULL) {
     usage("couldn't make coding matrix");
   }
