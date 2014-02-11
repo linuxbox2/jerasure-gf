@@ -3,12 +3,12 @@
 
 static int gal_multiply_w32(gf_t *gf, int a, int b)
 {
-	galois_single_multiply(a, b, gf->w);
+	return galois_single_multiply(a, b, gf->w);
 }
 
 static int gal_divide_w32(gf_t *gf, int a, int b)
 {
-	galois_single_divide(a, b, gf->w);
+	return galois_single_divide(a, b, gf->w);
 }
 
 static struct _op_single gal_op_multiply = {
