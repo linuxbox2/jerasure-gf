@@ -47,7 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 extern int *cauchy_original_coding_matrix(struct jerasure_context *ctx, int k, int m);
-extern int *cauchy_xy_coding_matrix(int k, int m, int w, int *x, int *y);
+extern int *cauchy_xy_coding_matrix(struct jerasure_context *ctx, int k, int m, int *x, int *y);
 extern void cauchy_improve_coding_matrix(struct jerasure_context *ctx, int k, int m, int *matrix);
 extern int *cauchy_good_general_coding_matrix(struct jerasure_context *ctx, int k, int m);
 extern int cauchy_n_ones(struct jerasure_context *ctx, int n);

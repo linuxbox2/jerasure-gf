@@ -206,7 +206,7 @@ int *cauchy_original_coding_matrix(struct jerasure_context *ctx, int k, int m)
   return matrix;
 }
 
-int *cauchy_xy_coding_matrix(int k, int m, int w, int *X, int *Y)
+int *cauchy_xy_coding_matrix(struct jerasure_context *ctx, int k, int m, int *X, int *Y)
 {
   int index, i, j;
   int *matrix;
@@ -216,7 +216,7 @@ int *cauchy_xy_coding_matrix(int k, int m, int w, int *X, int *Y)
   index = 0;
   for (i = 0; i < m; i++) {
     for (j = 0; j < k; j++) {
-      matrix[index] = galois_single_divide(1, (X[i] ^ Y[j]), w);
+      matrix[index] = ctx->gf->divide.w32(ctx->gf, 1, (X[i] ^ Y[j]));
       index++;
     }
   }

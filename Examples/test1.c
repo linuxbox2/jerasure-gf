@@ -2939,7 +2939,7 @@ test14()
 	for (tp = test14_data; tp->w; ++tp) {
 		failed = 0;
 		sprintf (label, "test14 case %d", 1+tp-test14_data);
-		sprintf (key, "cauchy_02 0%d %d", tp->k, tp->m, tp->w);
+		sprintf (key, "cauchy_02 0%d %d %d", tp->k, tp->m, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
 		ctx = jerasure_make_context(tp->w);
@@ -3031,7 +3031,7 @@ test14()
 		if (x == NULL || y == NULL) { perror("malloc"); goto Bad; }
 		for (i = 0; i < tp->m; i++) x[i] = i;
 		for (i = 0; i < tp->k; i++) y[i] = tp->m+i;
-		m2 = cauchy_xy_coding_matrix(tp->k, tp->m, tp->w, x, y);
+		m2 = cauchy_xy_coding_matrix(ctx, tp->k, tp->m, x, y);
 		if (memcmp(matrix, m2, sizeof(int)*tp->k*tp->m) != 0) {
 			failed |= 8;
 			printf("%s: Error -- the matrices made by original and xy don't match\n", label);

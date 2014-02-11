@@ -156,7 +156,7 @@ int main(int argc, char **argv)
   if (x == NULL || y == NULL) { perror("malloc"); exit(1); }
   for (i = 0; i < m; i++) x[i] = i;
   for (i = 0; i < k; i++) y[i] = m+i;
-  m2 = cauchy_xy_coding_matrix(k, m, w, x, y);
+  m2 = cauchy_xy_coding_matrix(ctx, k, m, x, y);
   if (memcmp(matrix, m2, sizeof(int)*k*m) != 0) {
     printf("Error -- the matrices made by original and xy don't match\n");
     exit(1);
