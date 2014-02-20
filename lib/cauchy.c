@@ -231,7 +231,7 @@ void cauchy_improve_coding_matrix(struct jerasure_context *ctx, int k, int m, in
 
   for (j = 0; j < k; j++) {
     if (matrix[j] != 1) {
-      tmp = galois_single_divide(1, matrix[j], ctx->w);
+      tmp = ctx->gf->divide.w32(ctx->gf, 1, matrix[j]);
       index = j;
       for (i = 0; i < m; i++) {
         matrix[index] = ctx->gf->multiply.w32(ctx->gf, matrix[index], tmp);
@@ -246,7 +246,7 @@ void cauchy_improve_coding_matrix(struct jerasure_context *ctx, int k, int m, in
     bno_index = -1;
     for (j = 0; j < k; j++) {
       if (matrix[index+j] != 1) {
-        tmp = galois_single_divide(1, matrix[index+j], ctx->w);
+        tmp = ctx->gf->divide.w32(ctx->gf, 1, matrix[index+j]);
         tno = 0;
         for (x = 0; x < k; x++) {
           tno += cauchy_n_ones(ctx, ctx->gf->multiply.w32(ctx->gf, matrix[index+x], tmp));
@@ -258,7 +258,7 @@ void cauchy_improve_coding_matrix(struct jerasure_context *ctx, int k, int m, in
       }
     }
     if (bno_index != -1) {
-      tmp = galois_single_divide(1, matrix[index+bno_index], ctx->w);
+      tmp = ctx->gf->divide.w32(ctx->gf, 1, matrix[index+bno_index]);
       for (j = 0; j < k; j++) {
         matrix[index+j] = ctx->gf->multiply.w32(ctx->gf, matrix[index+j], tmp);
       }
