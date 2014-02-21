@@ -118,7 +118,7 @@ int main(int argc, char **argv)
     coding[i] = talloc(char, size);
   }
 
-  jerasure_matrix_encode(k, m, w, matrix, data, coding, size);
+  jerasure_matrix_encode(ctx, k, m, matrix, data, coding, size);
   
   printf("Encoding Complete:\n\n");
   print_data_and_coding_1(k, m, w, size, data, coding);
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
   jerasure_print_matrix(dm_ids, 1, k, w);
 
   memset(data[0], 0, size);
-  jerasure_matrix_dotprod(k, w, decoding_matrix, dm_ids, 0, data, coding, size);
+  jerasure_matrix_dotprod(ctx, k, decoding_matrix, dm_ids, 0, data, coding, size);
 
   printf("\nAfter calling jerasure_matrix_dotprod, we calculate the value of device #0 to be:\n\n");
   printf("D0 :");

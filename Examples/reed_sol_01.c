@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     coding[i] = talloc(char, sizeof(gdata));
   }
 
-  jerasure_matrix_encode(k, m, w, matrix, data, coding, sizeof(gdata));
+  jerasure_matrix_encode(ctx, k, m, matrix, data, coding, sizeof(gdata));
   
   printf("Encoding Complete:\n\n");
   print_data_and_coding_1(k, m, w, sizeof(gdata), data, coding);

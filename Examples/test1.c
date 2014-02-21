@@ -1669,7 +1669,7 @@ int test5()
 		for (i = 0; i < tp->m; ++i) {
 			coding[i] = talloc(char, tp->s);
 		}
-		jerasure_matrix_encode(tp->k, tp->m, tp->w,
+		jerasure_matrix_encode(ctx, tp->k, tp->m,
 			matrix,
 			data, coding, tp->s);
 
@@ -1752,7 +1752,7 @@ int test5()
 		saved_data0 = data[0];
 		data[0] = talloc(char, tp->s);
 		memset(data[0], 0, tp->s);
-		jerasure_matrix_dotprod(tp->k, tp->w,
+		jerasure_matrix_dotprod(ctx, tp->k,
 			decoding_matrix, dm_ids,
 			0, data, coding, tp->s);
 		if (memcmp(saved_data0, data[0], tp->s)) {
@@ -2416,7 +2416,7 @@ test9()
 			coding[i] = talloc(char, sizeof(gdata));
 		}
 
-		jerasure_matrix_encode(tp->k, tp->m, tp->w, matrix, data, coding, sizeof(gdata));
+		jerasure_matrix_encode(ctx, tp->k, tp->m, matrix, data, coding, sizeof(gdata));
 		coding_cksum = vector_check_sum(coding, tp->m, sizeof(gdata));
 
 		erasures = talloc(int, (tp->m+1));

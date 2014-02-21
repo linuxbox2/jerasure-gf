@@ -256,7 +256,7 @@ int jerasure_matrix_decode(struct jerasure_context *ctx, int k, int m,
 
   for (i = 0; edd > 0 && i < lastdrive; i++) {
     if (erased[i]) {
-      jerasure_matrix_dotprod(k, ctx->w, decoding_matrix+(i*k), dm_ids, i, data_ptrs, coding_ptrs, size);
+      jerasure_matrix_dotprod(ctx, k, decoding_matrix+(i*k), dm_ids, i, data_ptrs, coding_ptrs, size);
       edd--;
     }
   }
@@ -268,7 +268,7 @@ int jerasure_matrix_decode(struct jerasure_context *ctx, int k, int m,
     for (i = 0; i < k; i++) {
       tmpids[i] = (i < lastdrive) ? i : i+1;
     }
-    jerasure_matrix_dotprod(k, ctx->w, matrix, tmpids, lastdrive, data_ptrs, coding_ptrs, size);
+    jerasure_matrix_dotprod(ctx, k, matrix, tmpids, lastdrive, data_ptrs, coding_ptrs, size);
     free(tmpids);
   }
   
@@ -276,7 +276,7 @@ int jerasure_matrix_decode(struct jerasure_context *ctx, int k, int m,
 
   for (i = 0; i < m; i++) {
     if (erased[k+i]) {
-      jerasure_matrix_dotprod(k, ctx->w, matrix+(i*k), NULL, i+k, data_ptrs, coding_ptrs, size);
+      jerasure_matrix_dotprod(ctx, k, matrix+(i*k), NULL, i+k, data_ptrs, coding_ptrs, size);
     }
   }
 
@@ -316,19 +316,19 @@ int *jerasure_matrix_to_bitmatrix(struct jerasure_context *ctx, int k, int m, in
   return bitmatrix;
 }
 
-void jerasure_matrix_encode(int k, int m, int w, int *matrix,
+void jerasure_matrix_encode(struct jerasure_context *ctx, int k, int m, int *matrix,
                           char **data_ptrs, char **coding_ptrs, int size)
 {
   int *init;
   int i, j;
   
-  if (w != 8 && w != 16 && w != 32) {
+  if (ctx->w != 8 && ctx->w != 16 && ctx->w != 32) {
     fprintf(stderr, "ERROR: jerasure_matrix_encode() and w is not 8, 16 or 32\n");
     exit(1);
   }
 
   for (i = 0; i < m; i++) {
-    jerasure_matrix_dotprod(k, w, matrix+(i*k), NULL, k+i, data_ptrs, coding_ptrs, size);
+    jerasure_matrix_dotprod(ctx, k, matrix+(i*k), NULL, k+i, data_ptrs, coding_ptrs, size);
   }
 }
 
@@ -592,7 +592,7 @@ void jerasure_free_schedule_cache(int k, int m, int ***cache)
   free(cache);
 }
 
-void jerasure_matrix_dotprod(int k, int w, int *matrix_row,
+void jerasure_matrix_dotprod(struct jerasure_context *ctx, int k, int *matrix_row,
                           int *src_ids, int dest_id,
                           char **data_ptrs, char **coding_ptrs, int size)
 {
@@ -600,7 +600,7 @@ void jerasure_matrix_dotprod(int k, int w, int *matrix_row,
   char *dptr, *sptr;
   int i;
 
-  if (w != 1 && w != 8 && w != 16 && w != 32) {
+  if (ctx->w != 1 && ctx->w != 8 && ctx->w != 16 && ctx->w != 32) {
     fprintf(stderr, "ERROR: jerasure_matrix_dotprod() called and w is not 1, 8, 16 or 32\n");
     exit(1);
   }
@@ -642,7 +642,7 @@ void jerasure_matrix_dotprod(int k, int w, int *matrix_row,
       } else {
         sptr = coding_ptrs[src_ids[i]-k];
       }
-      switch (w) {
+      switch (ctx->w) {
         case 8:  galois_w08_region_multiply(sptr, matrix_row[i], size, dptr, init); break;
         case 16: galois_w16_region_multiply(sptr, matrix_row[i], size, dptr, init); break;
         case 32: galois_w32_region_multiply(sptr, matrix_row[i], size, dptr, init); break;

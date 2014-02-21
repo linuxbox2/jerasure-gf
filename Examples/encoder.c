@@ -512,7 +512,7 @@ int main (int argc, char **argv) {
 			case No_Coding:
 				break;
 			case Reed_Sol_Van:
-				jerasure_matrix_encode(k, m, w, matrix, data, coding, blocksize);
+				jerasure_matrix_encode(ctx, k, m, matrix, data, coding, blocksize);
 				break;
 			case Reed_Sol_R6_Op:
 				reed_sol_r6_encode(ctx, k, data, coding, blocksize);
