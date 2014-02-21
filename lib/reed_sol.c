@@ -224,7 +224,7 @@ int reed_sol_r6_encode(struct jerasure_context *ctx, int k, char **data_ptrs, ch
 
   memcpy(coding_ptrs[0], data_ptrs[0], size);
 
-  for (i = 1; i < k; i++) galois_region_xor(coding_ptrs[0], data_ptrs[i], coding_ptrs[0], size);
+  for (i = 1; i < k; i++) gf_multby_one(data_ptrs[i], coding_ptrs[0], size, 1);
 
   /* Next, put the sum of (2^j)*Dj into coding region 1 */
 
@@ -238,7 +238,7 @@ int reed_sol_r6_encode(struct jerasure_context *ctx, int k, char **data_ptrs, ch
       default: return 0;
     }
 
-    galois_region_xor(coding_ptrs[1], data_ptrs[i], coding_ptrs[1], size);
+    gf_multby_one(data_ptrs[i], coding_ptrs[1], size, 1);
   }
   return 1;
 }
