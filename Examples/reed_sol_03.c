@@ -90,6 +90,7 @@ int main(int argc, char **argv)
   m = 2;
   if (w <= 16 && k + m > (1 << w)) usage("k + m is too big");
 
+  ctx = jerasure_make_context(w);
   matrix = reed_sol_r6_coding_matrix(ctx, k);
 
   printf("Last 2 rows of the Distribution Matrix:\n\n");
@@ -103,13 +104,12 @@ int main(int argc, char **argv)
     fillrand(data[i], sizeof(gdata));
   }
 
-  ctx = jerasure_make_context(w);
   coding = talloc(char *, m);
   for (i = 0; i < m; i++) {
     coding[i] = talloc(char, sizeof(gdata));
   }
 
-  reed_sol_r6_encode(k, w, data, coding, sizeof(gdata));
+  reed_sol_r6_encode(ctx, k, data, coding, sizeof(gdata));
   
   printf("Encoding Complete:\n\n");
   print_data_and_coding_1(k, m, w, sizeof(gdata), data, coding);

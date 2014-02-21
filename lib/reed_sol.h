@@ -51,9 +51,9 @@ extern int *reed_sol_vandermonde_coding_matrix(struct jerasure_context *ctx, int
 extern int *reed_sol_extended_vandermonde_matrix(struct jerasure_context *ctx, int rows, int cols);
 extern int *reed_sol_big_vandermonde_distribution_matrix(struct jerasure_context *ctx, int rows, int cols);
 
-extern int reed_sol_r6_encode(int k, int w, char **data_ptrs, char **coding_ptrs, int size);
+extern int reed_sol_r6_encode(struct jerasure_context *ctx, int k, char **data_ptrs, char **coding_ptrs, int size);
 extern int *reed_sol_r6_coding_matrix(struct jerasure_context *ctx, int k);
 
-extern void reed_sol_galois_w08_region_multby_2(char *region, int nbytes);
-extern void reed_sol_galois_w16_region_multby_2(char *region, int nbytes);
-extern void reed_sol_galois_w32_region_multby_2(char *region, int nbytes);
+extern void reed_sol_galois_w08_region_multby_2(struct jerasure_context *ctx, char *region, int nbytes);
+extern void reed_sol_galois_w16_region_multby_2(struct jerasure_context *ctx, char *region, int nbytes);
+extern void reed_sol_galois_w32_region_multby_2(struct jerasure_context *ctx, char *region, int nbytes);

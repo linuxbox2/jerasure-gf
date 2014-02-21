@@ -2616,8 +2616,12 @@ test11()
 	for (tp = test11_data; tp->w; ++tp) {
 		failed = 0;
 		sprintf (label, "test11 case %d", 1+tp-test11_data);
-		sprintf (key, "reed_sol_03 %d %d %d",
-			tp->k, tp->m, tp->w);
+		if (tp->m != 2)
+			sprintf (key, "reed_sol_03a %d %d %d",
+				tp->k, tp->m, tp->w);
+		else
+			sprintf (key, "reed_sol_03 %d %d",
+				tp->k, tp->w);
 		rc4_set_key(ks, strlen(key), key, 0);
 
 		ctx = jerasure_make_context(tp->w);
@@ -2643,7 +2647,7 @@ test11()
 			coding[i] = talloc(char, sizeof(gdata));
 		}
 
-		reed_sol_r6_encode(tp->k, tp->w, data, coding, sizeof(gdata));
+		reed_sol_r6_encode(ctx, tp->k, data, coding, sizeof(gdata));
 		coding_cksum = vector_check_sum(coding, tp->m, sizeof(gdata));
 
 		erasures = talloc(int, (tp->m+1));
@@ -2750,7 +2754,7 @@ test12()
 			x = (unsigned char *) copy;
 			y = (unsigned char *) a32;
 			rb = (unsigned char *) reversed;
-			reed_sol_galois_w08_region_multby_2((char *) a32, sizeof(int)*4);
+			reed_sol_galois_w08_region_multby_2(ctx, (char *) a32, sizeof(int)*4);
 			for (i = 0; i < 4*sizeof(int)/sizeof(char); i++) {
 				rb[i] = ctx->gf->divide.w32(ctx->gf, y[i], 2);
 			}
@@ -2767,7 +2771,7 @@ test12()
 			xs = (unsigned short *) copy;
 			ys = (unsigned short *) a32;
 			rs = (unsigned short *) reversed;
-			reed_sol_galois_w16_region_multby_2((char *) a32, sizeof(int)*4);
+			reed_sol_galois_w16_region_multby_2(ctx, (char *) a32, sizeof(int)*4);
 			for (i = 0; i < 4*sizeof(int)/sizeof(short); i++) {
 				rs[i] = ctx->gf->divide.w32(ctx->gf, ys[i], 2);
 			}
@@ -2784,7 +2788,7 @@ test12()
 			xi = (unsigned int *) copy;
 			yi = (unsigned int *) a32;
 			ri = (unsigned int *) reversed;
-			reed_sol_galois_w32_region_multby_2((char *) a32, sizeof(int)*4);
+			reed_sol_galois_w32_region_multby_2(ctx, (char *) a32, sizeof(int)*4);
 			for (i = 0; i < 4*sizeof(int)/sizeof(int); i++) {
 				ri[i] = ctx->gf->divide.w32(ctx->gf, yi[i], 2);
 			}

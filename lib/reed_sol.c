@@ -103,13 +103,14 @@ static int prim32 = -1;
 
 #define rgw32_mask(v) ((v) & 0x80000000)
 
-void reed_sol_galois_w32_region_multby_2(char *region, int nbytes) 
+void reed_sol_galois_w32_region_multby_2(struct jerasure_context *ctx, char *region, int nbytes) 
 {
   int *l1;
   int *ltop;
   char *ctop;
 
-  if (prim32 == -1) prim32 = galois_single_multiply((1 << 31), 2, 32);
+/* assert(ctx->w == 32) */
+  if (prim32 == -1) prim32 = ctx->gf->multiply.w32(ctx->gf, (1 << 31), 2);
 
   ctop = region + nbytes;
   ltop = (int *) ctop;
@@ -125,7 +126,7 @@ static int prim08 = -1;
 static int mask08_1 = -1;
 static int mask08_2 = -1;
 
-void reed_sol_galois_w08_region_multby_2(char *region, int nbytes)
+void reed_sol_galois_w08_region_multby_2(struct jerasure_context *ctx, char *region, int nbytes)
 {
   unsigned int *l1;
   unsigned int *ltop;
@@ -133,8 +134,9 @@ void reed_sol_galois_w08_region_multby_2(char *region, int nbytes)
   unsigned int tmp, tmp2;
   
 
+/* assert(ctx->w == 8) */
   if (prim08 == -1) {
-    tmp = galois_single_multiply((1 << 7), 2, 8);
+    tmp = ctx->gf->multiply.w32(ctx->gf, (1 << 7), 2);
     prim08 = 0;
     while (tmp != 0) {
       prim08 |= tmp;
@@ -171,7 +173,7 @@ static int prim16 = -1;
 static int mask16_1 = -1;
 static int mask16_2 = -1;
 
-void reed_sol_galois_w16_region_multby_2(char *region, int nbytes)
+void reed_sol_galois_w16_region_multby_2(struct jerasure_context *ctx, char *region, int nbytes)
 {
   unsigned int *l1;
   unsigned int *ltop;
@@ -179,8 +181,9 @@ void reed_sol_galois_w16_region_multby_2(char *region, int nbytes)
   unsigned int tmp, tmp2;
   
 
+/* assert(ctx->w == 16) */
   if (prim16 == -1) {
-    tmp = galois_single_multiply((1 << 15), 2, 16);
+    tmp = ctx->gf->multiply.w32(ctx->gf, (1 << 15), 2);
     prim16 = 0;
     while (tmp != 0) {
       prim16 |= tmp;
@@ -213,7 +216,7 @@ void reed_sol_galois_w16_region_multby_2(char *region, int nbytes)
   }
 }
 
-int reed_sol_r6_encode(int k, int w, char **data_ptrs, char **coding_ptrs, int size)
+int reed_sol_r6_encode(struct jerasure_context *ctx, int k, char **data_ptrs, char **coding_ptrs, int size)
 {
   int i;
 
@@ -228,10 +231,10 @@ int reed_sol_r6_encode(int k, int w, char **data_ptrs, char **coding_ptrs, int s
   memcpy(coding_ptrs[1], data_ptrs[k-1], size);
 
   for (i = k-2; i >= 0; i--) {
-    switch (w) {
-      case 8:  reed_sol_galois_w08_region_multby_2(coding_ptrs[1], size); break;
-      case 16: reed_sol_galois_w16_region_multby_2(coding_ptrs[1], size); break;
-      case 32: reed_sol_galois_w32_region_multby_2(coding_ptrs[1], size); break;
+    switch (ctx->w) {
+      case 8:  reed_sol_galois_w08_region_multby_2(ctx, coding_ptrs[1], size); break;
+      case 16: reed_sol_galois_w16_region_multby_2(ctx, coding_ptrs[1], size); break;
+      case 32: reed_sol_galois_w32_region_multby_2(ctx, coding_ptrs[1], size); break;
       default: return 0;
     }
 

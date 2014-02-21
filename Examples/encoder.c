@@ -515,7 +515,7 @@ int main (int argc, char **argv) {
 				jerasure_matrix_encode(k, m, w, matrix, data, coding, blocksize);
 				break;
 			case Reed_Sol_R6_Op:
-				reed_sol_r6_encode(k, w, data, coding, blocksize);
+				reed_sol_r6_encode(ctx, k, data, coding, blocksize);
 				break;
 			case Cauchy_Orig:
 				jerasure_schedule_encode(k, m, w, schedule, data, coding, blocksize, packetsize);
