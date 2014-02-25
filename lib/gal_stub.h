@@ -8,8 +8,8 @@ struct galois_stub {
 		int (*w64)(gf_t*, int, int);
 	} multiply, divide;
 	struct _op_region {
-		void (*w32)(gf_t*, int *, int *, int, int, int);
-		void (*w64)(gf_t*, int *, int *, int, int, int);
+		void (*w32)(gf_t*, void *, void *, int, int, int);
+		void (*w64)(gf_t*, void *, void *, int, int, int);
 	} multiply_region;
 };
 void gf_multby_one(void *, void *, unsigned, int);
