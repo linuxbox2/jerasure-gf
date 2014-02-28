@@ -2,8 +2,6 @@ SET(jerasure_LIB_SRCS
   jerasure.c
   liberation.c
   reed_sol.h
-  gal_stub.h
-  gal_stub.c
   cauchy.c
   liberation.h
   reed_sol.c
