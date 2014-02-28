@@ -21,14 +21,15 @@ The lib directory contains the jerasure code.
 The Examples directory contains the example programs.  
 
 To build:
-	cmake
+	cd <path-to-source>
+	cmake .
 	make
 building out of tree
 	make <somewhere>; cd <somewhere>
 	cmake <path-to-source>
 	make
 Building with gf,
-	cmake -DWITH_GF=<where-gf-built>
+	cmake -DWITH_GF=<full-pathname-to-where-gf-built>
 	make
 
 To build with debug symbols, add "-DCMAKE_BUILD_TYPE=Debug" to the cmake line.
