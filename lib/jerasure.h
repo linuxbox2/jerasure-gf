@@ -49,9 +49,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _JERASURE_H
 #define _JERASURE_H
 
-#include "jerasure.h"
-#include "jerasure_int.h"
 struct jerasure_context;
+
+#include "jerasure_int.h"
+
 
 /* ------------------------------------------------------------ */
 /* In all of the routines below:

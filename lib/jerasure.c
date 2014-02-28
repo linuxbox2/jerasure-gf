@@ -51,7 +51,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #include "jerasure.h"
-#include "jerasure_int.h"
 
 #define talloc(type, num) (type *) malloc(sizeof(type)*(num))
 

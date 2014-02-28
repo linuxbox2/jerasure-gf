@@ -50,6 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 
+#include "jerasure_int.h"
 #include "galois.h"
 
 #define NONE (10)

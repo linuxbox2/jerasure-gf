@@ -5,7 +5,11 @@
 #define _H_JERASURE 1
 #ifdef WITH_GF
 #include "gf_complete.h"
+typedef unsigned int gdata_u;
+typedef int gdata;
 #else
+typedef unsigned long gdata_u;
+typedef long gdata;
 #include "galois.h"
 #include "gal_stub.h"
 #endif
