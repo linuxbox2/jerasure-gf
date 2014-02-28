@@ -66,7 +66,7 @@ struct jerasure_context *jerasure_make_context(int w)
   r = malloc(sizeof *r);
   memset(r, 0, sizeof *r);
   r->w = w;
-  gf_init_easy(&r->gf, w);
+  gf_init_easy(r->gf, w);
   return r;
 }
 
