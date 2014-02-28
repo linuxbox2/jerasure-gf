@@ -32,3 +32,8 @@ Building with gf,
 	make
 
 To build with debug symbols, add "-DCMAKE_BUILD_TYPE=Debug" to the cmake line.
+
+To test your build, run
+	Examples/test1
+If everything checks out, you'll see "all tests passed", otherwise
+you'll see information that may help you find out what's wrong with your build.
